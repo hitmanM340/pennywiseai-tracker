@@ -69,6 +69,11 @@ import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 import com.pennywiseai.tracker.domain.usecase.DeleteTransactionUseCase
 import com.pennywiseai.tracker.domain.usecase.RestoreTransactionUseCase
+import com.pennywiseai.tracker.domain.security.DecoyVaultManager
+import com.pennywiseai.tracker.domain.intelligence.WealthIntelligenceEngine
+import com.pennywiseai.tracker.domain.intelligence.TransactionSentryEngine
+import com.pennywiseai.tracker.domain.intelligence.WealthIntelligenceReport
+import com.pennywiseai.tracker.domain.intelligence.SentryAuditReport
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,6 +94,9 @@ class HomeViewModel @Inject constructor(
     private val inAppReviewManager: InAppReviewManager,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val restoreTransactionUseCase: RestoreTransactionUseCase,
+    val wealthIntelligenceEngine: WealthIntelligenceEngine,
+    val transactionSentryEngine: TransactionSentryEngine,
+    val decoyVaultManager: DecoyVaultManager,
     @ApplicationContext private val context: Context,
     entitlementGate: com.pennywiseai.tracker.billing.EntitlementGate,
 ) : ViewModel() {
@@ -238,6 +246,33 @@ class HomeViewModel @Inject constructor(
                 _currentCycleWindow.value = BudgetCycle.currentCycle(LocalDate.now(), startDay)
             }
             .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            decoyVaultManager.isDecoyModeActive.collect { isDecoy ->
+                if (isDecoy) {
+                    val decoyAccounts = decoyVaultManager.getDecoyAccounts()
+                    val decoyTransactions = decoyVaultManager.getDecoyTransactions()
+                    val decoyItems = decoyTransactions.map { tx ->
+                        HomeRecentItem.SingleTransaction(tx)
+                    }
+                    val report = wealthIntelligenceEngine.computeWealthReport(
+                        accounts = decoyAccounts,
+                        recentTransactions = decoyTransactions,
+                        currency = "INR"
+                    )
+                    val sentry = transactionSentryEngine.auditTransactions(decoyTransactions)
+
+                    _uiState.value = _uiState.value.copy(
+                        accountBalances = decoyAccounts,
+                        recentItems = decoyItems,
+                        totalBalance = BigDecimal("4930.00"),
+                        wealthIntelligence = report,
+                        sentryAudit = sentry,
+                        isDecoyMode = true
+                    )
+                }
+            }
+        }
     }
 
     private var balanceVisibilityToggled = false
@@ -529,9 +564,11 @@ class HomeViewModel @Inject constructor(
                         }
                     }
 
-                // Balance is ready as soon as we have account data.
-                // Conversion failures are non-blocking — convertAmount returns the
-                // original amount as fallback, so no account is silently dropped.
+                val initialReport = wealthIntelligenceEngine.computeWealthReport(
+                    accounts = regularAccounts + creditCards,
+                    recentTransactions = emptyList(),
+                    currency = _uiState.value.selectedCurrency
+                )
 
                 _uiState.value = _uiState.value.copy(
                     accountBalances = regularAccounts,  // Pre-converted in unified mode
@@ -539,6 +576,7 @@ class HomeViewModel @Inject constructor(
                     totalBalance = totalBalanceInSelectedCurrency,
                     totalAvailableCredit = totalAvailableCreditInSelectedCurrency,
                     availableCurrencies = updatedAvailableCurrencies,
+                    wealthIntelligence = initialReport,
                     isBalanceReady = true,
                     isApproximateBalance = hasApproximateBalance
                 )
@@ -876,7 +914,25 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }.collect { items ->
-                _uiState.value = _uiState.value.copy(recentItems = items, isLoading = false)
+                val txs = items.mapNotNull {
+                    when (it) {
+                        is HomeRecentItem.SingleTransaction -> it.transaction
+                        is HomeRecentItem.GroupItem -> it.transactions.firstOrNull()
+                    }
+                }
+                val sentry = transactionSentryEngine.auditTransactions(txs)
+                val currentAccounts = _uiState.value.accountBalances + _uiState.value.creditCards
+                val report = wealthIntelligenceEngine.computeWealthReport(
+                    accounts = currentAccounts,
+                    recentTransactions = txs,
+                    currency = _uiState.value.selectedCurrency
+                )
+                _uiState.value = _uiState.value.copy(
+                    recentItems = items,
+                    wealthIntelligence = report,
+                    sentryAudit = sentry,
+                    isLoading = false
+                )
             }
         }
         
@@ -1702,7 +1758,10 @@ data class HomeUiState(
     val lastMonthSpendingHistory: List<BigDecimal> = emptyList(),
     val loanSummary: LoanSummary? = null,
     val selectedProfileId: Long? = null,
-    val profiles: List<ProfileEntity> = emptyList()
+    val profiles: List<ProfileEntity> = emptyList(),
+    val wealthIntelligence: WealthIntelligenceReport? = null,
+    val sentryAudit: SentryAuditReport? = null,
+    val isDecoyMode: Boolean = false
 )
 
 data class LoanSummary(

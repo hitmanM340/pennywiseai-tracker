@@ -891,16 +891,14 @@ private fun BudgetCard(
 
 @Composable
 private fun SpendingPaceChart(
-    cumulativeSpending: List<BigDecimal>,
-    budgetPace: List<BigDecimal>,
+    cumulativeSpending: List<Double>,
+    budgetPace: List<Double>,
     currency: String,
     modifier: Modifier = Modifier
 ) {
-    val doubleCumulative = remember(cumulativeSpending) { cumulativeSpending.map { it.toDouble() } }
-    val doublePace = remember(budgetPace) { budgetPace.map { it.toDouble() } }
     val themeColors = MaterialTheme.colorScheme
-    val isOverPace = doubleCumulative.lastOrNull()?.let { actual ->
-        doublePace.lastOrNull()?.let { pace -> actual > pace }
+    val isOverPace = cumulativeSpending.lastOrNull()?.let { actual ->
+        budgetPace.lastOrNull()?.let { pace -> actual > pace }
     } ?: false
     val spendingColor = if (isOverPace) themeColors.error else themeColors.primary
 
@@ -911,13 +909,8 @@ private fun SpendingPaceChart(
                     .height(120.dp),
                 data = listOf(
                     Line(
-<<<<<<< HEAD
                         label = stringResource(R.string.budgets_chart_actual),
                         values = cumulativeSpending,
-=======
-                        label = "Actual",
-                        values = doubleCumulative,
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         color = SolidColor(spendingColor),
                         firstGradientFillColor = spendingColor.copy(alpha = 0.2f),
                         secondGradientFillColor = Color.Transparent,
@@ -930,13 +923,8 @@ private fun SpendingPaceChart(
                         )
                     ),
                     Line(
-<<<<<<< HEAD
                         label = stringResource(R.string.budgets_chart_pace),
                         values = budgetPace,
-=======
-                        label = "Budget Pace",
-                        values = doublePace,
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         color = SolidColor(themeColors.onSurfaceVariant.copy(alpha = 0.4f)),
                         drawStyle = DrawStyle.Stroke(width = 1.5.dp),
                         strokeAnimationSpec = tween(1200),

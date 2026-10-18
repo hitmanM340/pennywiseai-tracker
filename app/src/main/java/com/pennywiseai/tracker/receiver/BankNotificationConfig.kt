@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.receiver
+﻿package com.pennywiseai.tracker.receiver
 
 import android.app.Notification
 import com.pennywiseai.parser.core.bank.BankParserFactory
@@ -16,7 +16,6 @@ object BankNotificationConfig {
         "com.avanza.ambitwizfbl" to "FaysalBank",
         // Enpara (Turkey) – alias must match EnparaBankParser.canHandle()
         "finansbank.enpara" to "Enpara",      // Enpara.com Cep Şubesi (personal, older brand)
-<<<<<<< HEAD
         "com.enparabank.retail" to "Enpara",  // Enpara Bank Cep Şube (personal, post-rebrand)
         // slice (India) – alias must match SliceParser.canHandle()
         "indwin.c3.shareapp" to "slice",
@@ -26,15 +25,6 @@ object BankNotificationConfig {
         // Huntington (USA) – app notifications use the same wording as its texts;
         // alias must match HuntingtonBankParser.canHandle()
         "com.huntington.m" to "Huntington"    // Huntington Mobile Banking
-=======
-        "com.enparabank.retail" to "Enpara",   // Enpara Bank Cep Şube (personal, post-rebrand)
-        // Google Pay (India / Tez)
-        "com.google.android.apps.nbu.paisa.user" to "GPay",
-        // State Bank of India (SBI) Apps
-        "com.sbi.yono" to "SBI",
-        "com.sbi.yonolite" to "SBI",
-        "com.sbi.upi" to "SBI"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     )
 
     /** Sender aliases notification-booked transactions are saved under. */

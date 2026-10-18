@@ -86,19 +86,6 @@ class BankNotificationListenerService : NotificationListenerService() {
 
         // 3. Defer to background worker thread safely
         serviceScope.launch {
-            // Double-check user's custom runtime preferences whitelist
-            val monitoredPackages = userPreferencesRepository.monitoredBankPackages.first()
-            val isWhitelisted = if (monitoredPackages.isEmpty()) {
-                packageName.equals("com.google.android.apps.nbu.paisa.user", ignoreCase = true)
-            } else {
-                monitoredPackages.contains(packageName.lowercase())
-            }
-
-            if (!isWhitelisted) {
-                Log.d(TAG, "Notification skipped: package $packageName is not in whitelisted packages")
-                return@launch
-            }
-
             var notificationId: Long? = null
             try {
                 notificationId = notificationRepository.logNotification(
@@ -112,21 +99,13 @@ class BankNotificationListenerService : NotificationListenerService() {
             }
 
             try {
-<<<<<<< HEAD
                 // Two-layer cross-channel dedup. Layer 1: exact transaction
                 // hash (the same value the SMS path stores) — identical bodies
                 // dedup here. Layer 2: same bank + merchant + amount within a
                 // ±2-minute window — catches the same charge whose sender code
                 // or body text differs between the SMS and the notification.
                 val parsed = BankParserFactory.getParsers(senderAlias)
-                    .firstNotNullOfOrNull { it.parse(body, senderAlias, timestamp) }
-=======
-                // Cross-dedup: check if SMS already created this transaction.
-                // Parse first to get amount, then look for an existing transaction
-                // with the same amount within a ±2-minute window.
-                val parser = BankParserFactory.getParser(senderAlias)
-                val parsed = parser?.parse(messageBody, senderAlias, timestamp)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
+                    .firstNotNullOfOrNull { it.parse(messageBody, senderAlias, timestamp) }
                 if (parsed != null) {
                     val incoming = parsed.toEntity()
                     val hashMatch = incoming.transactionHash

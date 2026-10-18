@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker
+﻿package com.pennywiseai.tracker
 
 import com.pennywiseai.tracker.data.database.entity.builtinKey
 import android.app.Activity
@@ -83,7 +83,6 @@ class PennyWiseApplication : Application(), Configuration.Provider {
             }
         }
 
-<<<<<<< HEAD
         // Re-arm the daily folder backup on process start when the user has it enabled,
         // so scheduled work survives reboots / app updates that clear WorkManager state.
         applicationScope.launch {
@@ -152,16 +151,6 @@ class PennyWiseApplication : Application(), Configuration.Provider {
             com.pennywiseai.tracker.widget.WidgetRefresher.refreshTransactionWidgets(this)
         }
         lastLocales = locales
-=======
-        // Enqueue automated backups
-        applicationScope.launch {
-            try {
-                com.pennywiseai.tracker.worker.AutoBackupWorker.enqueue(applicationContext)
-            } catch (e: Exception) {
-                android.util.Log.e("PennyWiseApp", "Failed to enqueue AutoBackupWorker", e)
-            }
-        }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 
     /**

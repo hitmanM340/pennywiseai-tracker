@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.presentation.transactions
+﻿package com.pennywiseai.tracker.presentation.transactions
 
 import com.pennywiseai.tracker.ui.UiText
 import com.pennywiseai.tracker.R
@@ -1529,19 +1529,14 @@ class TransactionsViewModel @Inject constructor(
                     it.transactionType == TransactionType.INCOME &&
                         it.budgetImpactType == BudgetImpactType.DEDUCT_SPENT
                 }
-<<<<<<< HEAD
                 .map { it.amount.toDouble() }.sum()
                 .toBigDecimal()
-=======
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 
             val income = currencyTransactions
                 .filter {
                     it.transactionType == TransactionType.INCOME &&
                         it.budgetImpactType != BudgetImpactType.DEDUCT_SPENT
                 }
-<<<<<<< HEAD
                 .map { it.amount.toDouble() }.sum()
                 .toBigDecimal()
 
@@ -1549,18 +1544,10 @@ class TransactionsViewModel @Inject constructor(
                 .filter { it.transactionType == TransactionType.EXPENSE }
                 .map { it.amount.toDouble() }.sum()
                 .toBigDecimal()
-=======
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
-
-            val rawExpenses = currencyTransactions
-                .filter { it.transactionType == TransactionType.EXPENSE }
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
             val expenses = (rawExpenses - refundTotal).coerceAtLeast(BigDecimal.ZERO)
 
             val credit = currencyTransactions
                 .filter { it.transactionType == TransactionType.CREDIT }
-<<<<<<< HEAD
                 .map { it.amount.toDouble() }.sum()
                 .toBigDecimal()
 
@@ -1573,17 +1560,6 @@ class TransactionsViewModel @Inject constructor(
                 .filter { it.transactionType == TransactionType.INVESTMENT }
                 .map { it.amount.toDouble() }.sum()
                 .toBigDecimal()
-=======
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
-
-            val transfer = currencyTransactions
-                .filter { it.transactionType == TransactionType.TRANSFER }
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
-
-            val investment = currencyTransactions
-                .filter { it.transactionType == TransactionType.INVESTMENT }
-                .fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 
             CurrencyTotals(
                 currency = currency,
@@ -1611,21 +1587,7 @@ class TransactionsViewModel @Inject constructor(
     }
     
     fun getReportUrl(transaction: TransactionEntity): String {
-<<<<<<< HEAD
         return SmsReportUrlBuilder.buildUrl(context, transaction.smsBody, transaction.smsSender)
-=======
-        // If we have the original SMS body, create report URL
-        val smsBody = transaction.smsBody ?: ""
-        // Use the original SMS sender if available
-        val sender = transaction.smsSender ?: ""
-        
-        // URL encode the parameters
-        val encodedMessage = java.net.URLEncoder.encode(smsBody, "UTF-8")
-        val encodedSender = java.net.URLEncoder.encode(sender, "UTF-8")
-        
-        // Create the report URL using hash fragment for privacy
-        return "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&autoparse=true"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
     
 }

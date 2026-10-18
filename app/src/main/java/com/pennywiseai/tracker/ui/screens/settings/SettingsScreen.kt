@@ -129,14 +129,9 @@ fun SettingsScreen(
     val budgetCycleStartDay by settingsViewModel.budgetCycleStartDay.collectAsStateWithLifecycle(initialValue = 1)
     val importExportMessage by settingsViewModel.importExportMessage.collectAsStateWithLifecycle()
     val exportedBackupFile by settingsViewModel.exportedBackupFile.collectAsStateWithLifecycle()
-<<<<<<< HEAD
     val deleteAllTransactionsCount by settingsViewModel.deleteAllTransactionsCount.collectAsStateWithLifecycle()
     val isDeletingAllTransactions by settingsViewModel.isDeletingAllTransactions.collectAsStateWithLifecycle()
     val deleteAllTransactionsResult by settingsViewModel.deleteAllTransactionsResult.collectAsStateWithLifecycle()
-=======
-    val backupDirectoryUri by settingsViewModel.backupDirectoryUri.collectAsStateWithLifecycle(initialValue = null)
-    val monitoredBankPackages by settingsViewModel.monitoredBankPackages.collectAsStateWithLifecycle(initialValue = emptySet())
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     val unifiedCurrencyMode by settingsViewModel.unifiedCurrencyMode.collectAsStateWithLifecycle(initialValue = false)
     val countCreditCardAsExpense by settingsViewModel.countCreditCardAsExpense.collectAsStateWithLifecycle(initialValue = false)
     val displayCurrency by settingsViewModel.displayCurrency.collectAsStateWithLifecycle(initialValue = "")
@@ -174,16 +169,12 @@ fun SettingsScreen(
     var showCurrencyDropdown by remember { mutableStateOf(false) }
     var showMainAccountDropdown by remember { mutableStateOf(false) }
     val permissionUiState by permissionViewModel.uiState.collectAsStateWithLifecycle()
-    val isAutoBackupEnabled by settingsViewModel.isAutoBackupEnabled.collectAsStateWithLifecycle(initialValue = true)
     var showExportPasswordDialog by remember { mutableStateOf(false) }
     var exportPasswordText by remember { mutableStateOf("") }
     
     var showImportPasswordDialog by remember { mutableStateOf(false) }
     var importPasswordText by remember { mutableStateOf("") }
     var importPendingUri by remember { mutableStateOf<Uri?>(null) }
-    
-    var showSetBackupPasswordDialog by remember { mutableStateOf(false) }
-    var showWhitelistDialog by remember { mutableStateOf(false) }
     val hasNotificationAccess = permissionUiState.hasNotificationAccess
     val context = LocalContext.current
     val notificationAccessLauncher = rememberLauncherForActivityResult(
@@ -223,7 +214,6 @@ fun SettingsScreen(
         }
     )
 
-<<<<<<< HEAD
     val backupFolderLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
         onResult = { uri ->
@@ -235,21 +225,6 @@ fun SettingsScreen(
         if (requestFolderPicker) {
             backupFolderLauncher.launch(null)
             settingsViewModel.onFolderPickerLaunched()
-=======
-    val backupDirLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        uri?.let {
-            try {
-                context.contentResolver.takePersistableUriPermission(
-                    it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                )
-            } catch (e: Exception) {
-                Log.e("SettingsScreen", "Failed to take persistable URI permission", e)
-            }
-            settingsViewModel.updateBackupDirectoryUri(it.toString())
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         }
     }
 
@@ -552,11 +527,7 @@ fun SettingsScreen(
                     checked = appLockUiState.isLockEnabled,
                     onCheckedChange = { appLockViewModel.setAppLockEnabled(it) },
                     enabled = appLockUiState.canUseBiometric,
-<<<<<<< HEAD
                     position = if (appLockUiState.isLockEnabled) ListItemPosition.Top else ListItemPosition.Single
-=======
-                    position = ItemPosition.TOP
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 )
                 if (appLockUiState.isLockEnabled) {
                     SettingsNavItem(
@@ -573,50 +544,9 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { showTimeoutDialog = true },
-<<<<<<< HEAD
                         position = ListItemPosition.Bottom
-=======
-                        position = ItemPosition.MIDDLE
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                     )
                 }
-                SettingsSwitchRow(
-                    icon = Icons.Default.Backup,
-                    iconBgColor = green_light,
-                    iconTint = green_dark,
-                    title = "Automated Backups",
-                    subtitle = "Automatically backup your data every 7 days",
-                    checked = isAutoBackupEnabled,
-                    onCheckedChange = { settingsViewModel.setAutoBackupEnabled(it) },
-                    position = ItemPosition.MIDDLE
-                )
-                if (isAutoBackupEnabled) {
-                    SettingsNavItem(
-                        icon = Icons.Default.Password,
-                        iconBgColor = purple_light,
-                        iconTint = purple_dark,
-                        title = "Auto-Backup Password",
-                        subtitle = "Configure password for scheduled backups",
-                        onClick = { showSetBackupPasswordDialog = true },
-                        position = ItemPosition.MIDDLE
-                    )
-                }
-                SettingsNavItem(
-                    icon = Icons.Default.Folder,
-                    iconBgColor = blue_light,
-                    iconTint = blue_dark,
-                    title = "Backup Location",
-                    subtitle = backupDirectoryUri?.let {
-                        try {
-                            val parsedUri = Uri.parse(it)
-                            parsedUri.lastPathSegment ?: parsedUri.path ?: it
-                        } catch (e: Exception) {
-                            it
-                        }
-                    } ?: "Default app storage",
-                    onClick = { backupDirLauncher.launch(null) },
-                    position = ItemPosition.BOTTOM
-                )
             }
 
             // ── Data Management ──
@@ -689,7 +619,6 @@ fun SettingsScreen(
                     icon = Icons.Default.Upload,
                     iconBgColor = blue_light,
                     iconTint = blue_dark,
-<<<<<<< HEAD
                     title = stringResource(R.string.settings_export_data_title),
                     subtitle = stringResource(R.string.settings_export_data_subtitle),
                     onClick = { settingsViewModel.exportBackup() },
@@ -773,12 +702,6 @@ fun SettingsScreen(
                     subtitle = stringResource(R.string.settings_import_data_subtitle),
                     onClick = { importLauncher.launch("*/*") },
                     position = ListItemPosition.Middle
-=======
-                    title = "Export Data",
-                    subtitle = "Backup all data to a file",
-                    onClick = { showExportPasswordDialog = true },
-                    position = ItemPosition.MIDDLE
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 )
                 SettingsNavItem(
                     icon = Icons.Default.Download,
@@ -857,22 +780,8 @@ fun SettingsScreen(
                         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                         notificationAccessLauncher.launch(intent)
                     },
-<<<<<<< HEAD
                     position = ListItemPosition.Single,
                     trailingText = if (hasNotificationAccess) stringResource(R.string.settings_notification_access_on) else stringResource(R.string.settings_notification_access_off)
-=======
-                    position = ItemPosition.TOP,
-                    trailingText = if (hasNotificationAccess) "On" else "Off"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
-                )
-                SettingsNavItem(
-                    icon = Icons.Default.List,
-                    iconBgColor = blue_light,
-                    iconTint = blue_dark,
-                    title = "Monitored Bank Apps",
-                    subtitle = if (monitoredBankPackages.isEmpty()) "Tap to select bank apps" else "${monitoredBankPackages.size} apps selected",
-                    onClick = { showWhitelistDialog = true },
-                    position = ItemPosition.BOTTOM
                 )
             }
 
@@ -883,7 +792,7 @@ fun SettingsScreen(
                     icon = Icons.Default.AutoAwesome,
                     iconBgColor = purple_light,
                     iconTint = purple_dark,
-                    title = "Show PennyWise AI Tab",
+                    title = "Show Capybara AI Tab",
                     subtitle = "Hide the AI assistant tab on devices that don't use local LLM chat",
                     checked = showAiTab,
                     onCheckedChange = { settingsViewModel.setShowAiTab(it) },
@@ -1494,72 +1403,6 @@ fun SettingsScreen(
         )
     }
 
-    if (showWhitelistDialog) {
-        val allAvailablePackages = listOf(
-            "com.google.android.apps.nbu.paisa.user" to "Google Pay (India)",
-            "com.sbi.yono" to "SBI Yono",
-            "com.sbi.yonolite" to "SBI Yono Lite",
-            "com.sbi.upi" to "SBI UPI",
-            "com.avanza.ambitwizfbl" to "Faysal Bank",
-            "finansbank.enpara" to "Enpara (Personal)",
-            "com.enparabank.retail" to "Enpara Bank"
-        )
-        AlertDialog(
-            onDismissRequest = { showWhitelistDialog = false },
-            title = { Text("Monitored Bank Apps") },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
-                ) {
-                    Text(
-                        text = "Select which bank app notifications to monitor for transaction parsing:",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(bottom = Spacing.sm)
-                    )
-                    allAvailablePackages.forEach { (pkg, name) ->
-                        val isChecked = monitoredBankPackages.contains(pkg)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    val newSet = if (isChecked) {
-                                        monitoredBankPackages - pkg
-                                    } else {
-                                        monitoredBankPackages + pkg
-                                    }
-                                    settingsViewModel.updateMonitoredBankPackages(newSet)
-                                }
-                                .padding(vertical = Spacing.xs),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = isChecked,
-                                onCheckedChange = { checked ->
-                                    val newSet = if (checked == true) {
-                                        monitoredBankPackages + pkg
-                                    } else {
-                                        monitoredBankPackages - pkg
-                                    }
-                                    settingsViewModel.updateMonitoredBankPackages(newSet)
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.xs))
-                            Column {
-                                Text(text = name, style = MaterialTheme.typography.bodyLarge)
-                                Text(text = pkg, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showWhitelistDialog = false }) {
-                    Text("Done")
-                }
-            }
-        )
-    }
 
     if (showExportPasswordDialog) {
         AlertDialog(
@@ -1657,57 +1500,7 @@ fun SettingsScreen(
         )
     }
 
-    if (showSetBackupPasswordDialog) {
-        var tempPassword by remember { mutableStateOf("") }
-        var isPasswordVisible by remember { mutableStateOf(false) }
-        
-        LaunchedEffect(Unit) {
-            val currentPass = settingsViewModel.getBackupPassword() ?: ""
-            tempPassword = currentPass
-        }
 
-        AlertDialog(
-            onDismissRequest = { showSetBackupPasswordDialog = false },
-            title = { Text("Auto-Backup Password") },
-            text = {
-                Column {
-                    Text("Set a password to encrypt automated local backups. If left blank, auto-backups will be skipped.")
-                    Spacer(modifier = Modifier.height(Spacing.sm))
-                    OutlinedTextField(
-                        value = tempPassword,
-                        onValueChange = { tempPassword = it },
-                        label = { Text("Password") },
-                        singleLine = true,
-                        visualTransformation = if (isPasswordVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                                Icon(
-                                    imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = if (isPasswordVisible) "Toggle Password Visibility" else "Toggle Password Visibility"
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        settingsViewModel.setBackupPassword(tempPassword.takeIf { it.isNotBlank() })
-                        showSetBackupPasswordDialog = false
-                    }
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSetBackupPasswordDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 
     if (showUpgradeSheet) {
         com.pennywiseai.tracker.presentation.paywall.UpgradeSheet(

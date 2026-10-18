@@ -5,11 +5,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.pennywiseai.tracker.ui.theme.SurfaceMaterialStyle
+import com.pennywiseai.tracker.ui.theme.CapybaraPalette
 import com.pennywiseai.tracker.data.share.ShareCardConfig
 import com.pennywiseai.tracker.data.share.ShareHero
 import com.pennywiseai.tracker.data.share.SharePeriod
@@ -62,6 +65,9 @@ open class UserPreferencesRepository @Inject constructor(
         val THEME_STYLE = stringPreferencesKey("theme_style")
         val ACCENT_COLOR = stringPreferencesKey("accent_color")
         val IS_AMOLED_MODE = booleanPreferencesKey("is_amoled_mode")
+        val SURFACE_MATERIAL_STYLE = stringPreferencesKey("surface_material_style")
+        val CAPYBARA_PALETTE = stringPreferencesKey("capybara_palette")
+        val GLASS_INTENSITY = floatPreferencesKey("glass_intensity")
         val APP_FONT = stringPreferencesKey("app_font")
         val HAS_SKIPPED_SMS_PERMISSION = booleanPreferencesKey("has_skipped_sms_permission")
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
@@ -168,7 +174,6 @@ open class UserPreferencesRepository @Inject constructor(
 
         // UPI VPA → contact name lookup (opt-in; gated by READ_CONTACTS).
         val USE_CONTACTS_FOR_VPA = booleanPreferencesKey("use_contacts_for_vpa")
-<<<<<<< HEAD
 
         // Scheduled folder backup (SAF tree URI; shared by standard and F-Droid).
         val SCHEDULED_FOLDER_BACKUP_ENABLED = booleanPreferencesKey("scheduled_folder_backup_enabled")
@@ -185,12 +190,6 @@ open class UserPreferencesRepository @Inject constructor(
     private companion object {
         // F-Droid support nudge: at most one contextual prompt per this many days.
         const val SUPPORT_NUDGE_COOLDOWN_DAYS = 30L
-=======
-        val BACKUP_PASSWORD = stringPreferencesKey("backup_password")
-        val AUTO_BACKUP_ENABLED = booleanPreferencesKey("auto_backup_enabled")
-        val MONITORED_BANK_PACKAGES = stringSetPreferencesKey("monitored_bank_packages")
-        val BACKUP_DIRECTORY_URI = stringPreferencesKey("backup_directory_uri")
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 
     val userPreferences: Flow<UserPreferences> = context.dataStore.data
@@ -205,6 +204,13 @@ open class UserPreferencesRepository @Inject constructor(
                     try { AccentColor.valueOf(it) } catch (_: Exception) { AccentColor.SURFACE }
                 } ?: AccentColor.SURFACE,
                 isAmoledMode = preferences[PreferencesKeys.IS_AMOLED_MODE] ?: false,
+                surfaceMaterialStyle = preferences[PreferencesKeys.SURFACE_MATERIAL_STYLE]?.let {
+                    try { SurfaceMaterialStyle.valueOf(it) } catch (_: Exception) { SurfaceMaterialStyle.LIQUID_GLASS }
+                } ?: SurfaceMaterialStyle.LIQUID_GLASS,
+                capybaraPalette = preferences[PreferencesKeys.CAPYBARA_PALETTE]?.let {
+                    try { CapybaraPalette.valueOf(it) } catch (_: Exception) { CapybaraPalette.YUZU_ESPRESSO }
+                } ?: CapybaraPalette.YUZU_ESPRESSO,
+                glassIntensity = preferences[PreferencesKeys.GLASS_INTENSITY] ?: 0.70f,
                 appFont = preferences[PreferencesKeys.APP_FONT]?.let {
                     try { AppFont.valueOf(it) } catch (_: Exception) { AppFont.SYSTEM }
                 } ?: AppFont.SYSTEM,
@@ -230,17 +236,8 @@ open class UserPreferencesRepository @Inject constructor(
                 profileBackgroundColor = preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
                 hasCompletedOnboarding = preferences[PreferencesKeys.HAS_COMPLETED_ONBOARDING] ?: false,
                 mainAccountKey = preferences[PreferencesKeys.MAIN_ACCOUNT_KEY],
-                isAutoBackupEnabled = preferences[PreferencesKeys.AUTO_BACKUP_ENABLED] ?: true,
-                monitoredBankPackages = preferences[PreferencesKeys.MONITORED_BANK_PACKAGES] ?: setOf(
-                    "com.avanza.ambitwizfbl",
-                    "finansbank.enpara",
-                    "com.enparabank.retail",
-                    "com.google.android.apps.nbu.paisa.user",
-                    "com.sbi.yono",
-                    "com.sbi.yonolite",
-                    "com.sbi.upi"
-                ),
-                backupDirectoryUri = preferences[PreferencesKeys.BACKUP_DIRECTORY_URI]
+                selectedProfileId = preferences[PreferencesKeys.SELECTED_PROFILE_ID],
+                budgetCycleStartDay = preferences[PreferencesKeys.BUDGET_CYCLE_START_DAY] ?: 1
             )
         }
 
@@ -325,6 +322,43 @@ open class UserPreferencesRepository @Inject constructor(
     suspend fun updateAppFont(appFont: AppFont) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_FONT] = appFont.name
+        }
+    }
+
+    val surfaceMaterialStyle: Flow<SurfaceMaterialStyle> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.SURFACE_MATERIAL_STYLE]?.let {
+                try { SurfaceMaterialStyle.valueOf(it) } catch (_: Exception) { SurfaceMaterialStyle.LIQUID_GLASS }
+            } ?: SurfaceMaterialStyle.LIQUID_GLASS
+        }
+
+    val capybaraPalette: Flow<CapybaraPalette> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.CAPYBARA_PALETTE]?.let {
+                try { CapybaraPalette.valueOf(it) } catch (_: Exception) { CapybaraPalette.YUZU_ESPRESSO }
+            } ?: CapybaraPalette.YUZU_ESPRESSO
+        }
+
+    val glassIntensity: Flow<Float> = context.dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.GLASS_INTENSITY] ?: 0.70f
+        }
+
+    suspend fun updateSurfaceMaterialStyle(style: SurfaceMaterialStyle) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SURFACE_MATERIAL_STYLE] = style.name
+        }
+    }
+
+    suspend fun updateCapybaraPalette(palette: CapybaraPalette) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.CAPYBARA_PALETTE] = palette.name
+        }
+    }
+
+    suspend fun updateGlassIntensity(intensity: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GLASS_INTENSITY] = intensity.coerceIn(0.1f, 1.0f)
         }
     }
 
@@ -994,7 +1028,6 @@ open class UserPreferencesRepository @Inject constructor(
         }
     }
 
-<<<<<<< HEAD
     val scheduledFolderBackupEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.SCHEDULED_FOLDER_BACKUP_ENABLED] ?: false
@@ -1048,68 +1081,6 @@ open class UserPreferencesRepository @Inject constructor(
 
     suspend fun setFolderBackupIncludeReceipts(include: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.FOLDER_BACKUP_INCLUDE_RECEIPTS] = include }
-=======
-    suspend fun setAutoBackupEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.AUTO_BACKUP_ENABLED] = enabled
-        }
-    }
-
-    suspend fun getBackupPassword(): String? {
-        val encrypted = context.dataStore.data
-            .map { preferences -> preferences[PreferencesKeys.BACKUP_PASSWORD] }
-            .first() ?: return null
-        return try {
-            com.pennywiseai.tracker.utils.DatabaseKeyManager.decryptString(encrypted)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    suspend fun setBackupPassword(password: String?) {
-        context.dataStore.edit { preferences ->
-            if (password == null) {
-                preferences.remove(PreferencesKeys.BACKUP_PASSWORD)
-            } else {
-                val encrypted = com.pennywiseai.tracker.utils.DatabaseKeyManager.encryptString(password)
-                preferences[PreferencesKeys.BACKUP_PASSWORD] = encrypted
-            }
-        }
-    }
-
-    val monitoredBankPackages: Flow<Set<String>> = context.dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.MONITORED_BANK_PACKAGES] ?: setOf(
-                "com.avanza.ambitwizfbl",
-                "finansbank.enpara",
-                "com.enparabank.retail",
-                "com.google.android.apps.nbu.paisa.user",
-                "com.sbi.yono",
-                "com.sbi.yonolite",
-                "com.sbi.upi"
-            )
-        }
-
-    suspend fun updateMonitoredBankPackages(packages: Set<String>) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.MONITORED_BANK_PACKAGES] = packages
-        }
-    }
-
-    val backupDirectoryUri: Flow<String?> = context.dataStore.data
-        .map { preferences ->
-            preferences[PreferencesKeys.BACKUP_DIRECTORY_URI]
-        }
-
-    suspend fun updateBackupDirectoryUri(uri: String?) {
-        context.dataStore.edit { preferences ->
-            if (uri == null) {
-                preferences.remove(PreferencesKeys.BACKUP_DIRECTORY_URI)
-            } else {
-                preferences[PreferencesKeys.BACKUP_DIRECTORY_URI] = uri
-            }
-        }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 }
 
@@ -1119,6 +1090,9 @@ data class UserPreferences(
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
     val accentColor: AccentColor = AccentColor.SURFACE,
     val isAmoledMode: Boolean = false,
+    val surfaceMaterialStyle: SurfaceMaterialStyle = SurfaceMaterialStyle.LIQUID_GLASS,
+    val capybaraPalette: CapybaraPalette = CapybaraPalette.YUZU_ESPRESSO,
+    val glassIntensity: Float = 0.70f,
     val appFont: AppFont = AppFont.SYSTEM,
     val hasSkippedSmsPermission: Boolean = false,
     val isDeveloperModeEnabled: Boolean = false,
@@ -1137,7 +1111,6 @@ data class UserPreferences(
     val hasCompletedOnboarding: Boolean = false,
     val mainAccountKey: String? = null,
     val selectedProfileId: Long? = null,
-<<<<<<< HEAD
     /** Day of the month (1..31) the budget cycle starts on. 1 = calendar month. */
     val budgetCycleStartDay: Int = 1
 )
@@ -1149,9 +1122,3 @@ data class StoredLicense(
     val validatedAt: Long,
     val productName: String?,
 )
-=======
-    val isAutoBackupEnabled: Boolean = true,
-    val monitoredBankPackages: Set<String> = emptySet(),
-    val backupDirectoryUri: String? = null
-)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742

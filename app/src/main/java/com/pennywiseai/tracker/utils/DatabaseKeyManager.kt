@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.utils
+﻿package com.pennywiseai.tracker.utils
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
@@ -115,7 +115,6 @@ object DatabaseKeyManager {
     }
 
     fun encryptString(plainText: String): String {
-<<<<<<< HEAD
         return try {
             val secretKey = getPrefSecretKey()
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
@@ -148,32 +147,6 @@ object DatabaseKeyManager {
         } catch (e: Exception) {
             encryptedTextWithIv
         }
-=======
-        val secretKey = getPrefSecretKey()
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val encrypted = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
-        val iv = cipher.iv
-        
-        val encryptedBase64 = Base64.encodeToString(encrypted, Base64.NO_WRAP)
-        val ivBase64 = Base64.encodeToString(iv, Base64.NO_WRAP)
-        return "$encryptedBase64:$ivBase64"
-    }
-
-    fun decryptString(encryptedTextWithIv: String): String {
-        val parts = encryptedTextWithIv.split(":")
-        if (parts.size != 2) throw IllegalArgumentException("Invalid encrypted text format")
-        
-        val encrypted = Base64.decode(parts[0], Base64.NO_WRAP)
-        val iv = Base64.decode(parts[1], Base64.NO_WRAP)
-        
-        val secretKey = getPrefSecretKey()
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        val spec = GCMParameterSpec(128, iv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
-        val decrypted = cipher.doFinal(encrypted)
-        return String(decrypted, Charsets.UTF_8)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 }
 

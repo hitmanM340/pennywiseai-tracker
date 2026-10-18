@@ -31,7 +31,6 @@ import com.pennywiseai.tracker.data.backup.BackupExporter
 import com.pennywiseai.tracker.data.backup.BackupImporter
 import com.pennywiseai.tracker.data.backup.ExportBytesResult
 import com.pennywiseai.tracker.data.backup.ExportResult
-import com.pennywiseai.tracker.data.backup.ExportUriResult
 import com.pennywiseai.tracker.data.backup.ImportResult
 import com.pennywiseai.tracker.data.backup.ImportStrategy
 import com.pennywiseai.tracker.backup.folder.FolderBackupWriter
@@ -171,7 +170,6 @@ class SettingsViewModel @Inject constructor(
     // Replace UPI VPAs with contact names (gated by READ_CONTACTS).
     val useContactsForVpa = userPreferencesRepository.useContactsForVpa
 
-<<<<<<< HEAD
     // Derive the selectable set from the user's ACTUAL data (transaction + account
     // currencies) on top of the common seed list. This way any currency the user
     // really holds — e.g. MZN held only in an account — is always selectable, instead
@@ -185,30 +183,6 @@ class SettingsViewModel @Inject constructor(
         val allCurrencies = (transactionCurrencies + accountCurrencies + supportedCurrencies).distinct()
         CurrencyUtils.sortCurrencies(allCurrencies)
     }
-=======
-    val isAutoBackupEnabled = userPreferencesRepository.userPreferences.map { it.isAutoBackupEnabled }
-    val backupDirectoryUri = userPreferencesRepository.backupDirectoryUri
-    val monitoredBankPackages = userPreferencesRepository.monitoredBankPackages
-
-    fun updateBackupDirectoryUri(uri: String?) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateBackupDirectoryUri(uri)
-        }
-    }
-
-    fun updateMonitoredBankPackages(packages: Set<String>) {
-        viewModelScope.launch {
-            userPreferencesRepository.updateMonitoredBankPackages(packages)
-        }
-    }
-
-    val availableCurrencies: StateFlow<List<String>> = transactionRepository.getAllCurrencies()
-        .map { transactionCurrencies ->
-            val supportedCurrencies = CurrencyUtils.getAllSupportedCurrencies()
-            val allCurrencies = (transactionCurrencies + supportedCurrencies).distinct()
-            CurrencyUtils.sortCurrencies(allCurrencies)
-        }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -513,17 +487,8 @@ class SettingsViewModel @Inject constructor(
                 val firstUnreported = unrecognizedSmsRepository.getFirstUnreported()
                 
                 if (firstUnreported != null) {
-<<<<<<< HEAD
                     val url = SmsReportUrlBuilder.buildUrl(context, firstUnreported.smsBody, firstUnreported.sender)
                     Log.d("SettingsViewModel", "Full URL length: ${url.length}")
-=======
-                    // URL encode the parameters
-                    val encodedMessage = URLEncoder.encode(firstUnreported.smsBody, "UTF-8")
-                    val encodedSender = URLEncoder.encode(firstUnreported.sender, "UTF-8")
-                    
-                    // Create the report URL using hash fragment for privacy
-                    val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&autoparse=true"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                     
                     // Open in browser
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -542,10 +507,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
     
-    fun exportBackup(password: String) {
+    fun exportBackup(password: String = "") {
         viewModelScope.launch {
             try {
-<<<<<<< HEAD
                 val result = backupExporter.exportBackup(
                     includeReceipts = userPreferencesRepository.exportIncludeReceipts.first()
                 )
@@ -558,36 +522,8 @@ class SettingsViewModel @Inject constructor(
                     is ExportResult.Error -> {
                         _importExportMessage.value = UiText.Res(R.string.settings_export_failed, listOf("${result.message}"))
                         Log.e("SettingsViewModel", "Export failed: ${result.message}")
-=======
-                _importExportMessage.value = "Creating encrypted backup..."
-                val prefs = userPreferencesRepository.userPreferences.first()
-                val customUri = prefs.backupDirectoryUri
-                if (!customUri.isNullOrBlank()) {
-                    val result = backupExporter.exportToUri(customUri, password.toCharArray())
-                    when (result) {
-                        is ExportUriResult.Success -> {
-                            _importExportMessage.value = "Backup saved successfully to custom folder!"
-                        }
-                        is ExportUriResult.Error -> {
-                            _importExportMessage.value = "Export failed: ${result.message}"
-                            Log.e("SettingsViewModel", "Export failed: ${result.message}")
-                        }
                     }
-                } else {
-                    val result = backupExporter.exportBackup(password.toCharArray())
-                    when (result) {
-                        is ExportResult.Success -> {
-                            // Store the file for later saving
-                            _exportedBackupFile.value = result.file
-                            _importExportMessage.value = "Backup created successfully! Choose where to save it."
-                        }
-                        is ExportResult.Error -> {
-                            _importExportMessage.value = "Export failed: ${result.message}"
-                            Log.e("SettingsViewModel", "Export failed: ${result.message}")
-                        }
-                        else -> {}
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
-                    }
+                    else -> Unit
                 }
             } catch (e: Exception) {
                 _importExportMessage.value = UiText.Res(R.string.settings_export_error, listOf("${e.message}"))
@@ -648,13 +584,8 @@ class SettingsViewModel @Inject constructor(
     fun importBackup(uri: android.net.Uri, password: String) {
         viewModelScope.launch {
             try {
-<<<<<<< HEAD
                 _importExportMessage.value = UiText.Res(R.string.settings_importing_backup)
                 val result = backupImporter.importBackup(uri, ImportStrategy.MERGE)
-=======
-                _importExportMessage.value = "Importing backup..."
-                val result = backupImporter.importBackup(uri, password.toCharArray(), ImportStrategy.MERGE)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 when (result) {
                     is ImportResult.Success -> {
                         val counts = listOf(result.importedTransactions, result.importedCategories, result.skippedDuplicates)
@@ -829,7 +760,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-<<<<<<< HEAD
     fun updateNumberFormatStyle(style: NumberFormatStyle) {
         viewModelScope.launch {
             userPreferencesRepository.updateNumberFormatStyle(style)
@@ -858,22 +788,6 @@ class SettingsViewModel @Inject constructor(
             )
             userPreferencesRepository.applyMainAccountCurrency(currency)
         }
-=======
-    fun setAutoBackupEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setAutoBackupEnabled(enabled)
-        }
-    }
-
-    fun setBackupPassword(password: String?) {
-        viewModelScope.launch {
-            userPreferencesRepository.setBackupPassword(password)
-        }
-    }
-
-    suspend fun getBackupPassword(): String? {
-        return userPreferencesRepository.getBackupPassword()
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 }
 

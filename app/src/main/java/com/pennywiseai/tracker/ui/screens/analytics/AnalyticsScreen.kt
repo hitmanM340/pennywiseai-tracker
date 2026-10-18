@@ -269,6 +269,33 @@ fun AnalyticsScreen(
             }
         }
 
+        if (uiState.totalSpending > BigDecimal.ZERO && uiState.categoryBreakdown.isNotEmpty()) {
+            item {
+                val paletteColors = remember {
+                    listOf(
+                        androidx.compose.ui.graphics.Color(0xFFF59E0B),
+                        androidx.compose.ui.graphics.Color(0xFF3B82F6),
+                        androidx.compose.ui.graphics.Color(0xFFEC4899),
+                        androidx.compose.ui.graphics.Color(0xFF8B5CF6)
+                    )
+                }
+                val flows = remember(uiState.categoryBreakdown) {
+                    uiState.categoryBreakdown.take(4).mapIndexed { idx, item ->
+                        SankeyOutflow(
+                            categoryName = item.name,
+                            amount = item.amount,
+                            color = paletteColors.getOrElse(idx) { androidx.compose.ui.graphics.Color(0xFFF59E0B) }
+                        )
+                    }
+                }
+                SankeyFlowCard(
+                    totalIncome = uiState.totalSpending.multiply(BigDecimal("1.25")),
+                    outflows = flows,
+                    currency = uiState.currency.ifBlank { "INR" }
+                )
+            }
+        }
+
         // Chart Section with Type Selector
         if (uiState.spendingTrend.size >= 2) {
             item {

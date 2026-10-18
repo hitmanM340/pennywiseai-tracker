@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.ui.screens.analytics
+﻿package com.pennywiseai.tracker.ui.screens.analytics
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -409,11 +409,7 @@ class AnalyticsViewModel @Inject constructor(
                         unifiedConvertedCount++
                     }
                 } else {
-<<<<<<< HEAD
                     totalSpending = filteredTransactions.map { it.amount.toDouble() }.sum().toBigDecimal()
-=======
-                    totalSpending = filteredTransactions.fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 }
                 val effectiveCount = if (isUnified) unifiedConvertedCount else filteredTransactions.size
 
@@ -530,12 +526,8 @@ class AnalyticsViewModel @Inject constructor(
                             }
                             sum
                         } else {
-<<<<<<< HEAD
                             convertedCount = txns.size
                             txns.map { it.amount.toDouble() }.sum().toBigDecimal()
-=======
-                            txns.fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         }
                         // Net any refund that carries this merchant's name (floored at zero).
                         val merchantAmount = netOf(gross, refunds.byMerchant[merchant])
@@ -567,12 +559,8 @@ class AnalyticsViewModel @Inject constructor(
                             }
                             sum
                         } else {
-<<<<<<< HEAD
                             convertedCount = txns.size
                             txns.sumOf { it.amount.toDouble() }.toBigDecimal()
-=======
-                            txns.fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         }
                         // Net refunds credited back to this account (floored at zero) so
                         // the account total — and its % of the net grand total — stay sane.
@@ -770,12 +758,8 @@ class AnalyticsViewModel @Inject constructor(
                         val endOfYear = currentYear.withDayOfYear(currentYear.lengthOfYear())
                         val totalAmount = transactions.filter {
                             !it.dateTime.toLocalDate().isBefore(currentYear) && !it.dateTime.toLocalDate().isAfter(endOfYear)
-<<<<<<< HEAD
                         }.map(amountIn).sum().toBigDecimal()
                             .minus(refundsInRange(currentYear, endOfYear)).coerceAtLeast(BigDecimal.ZERO)
-=======
-                        }.fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         trend.add(BalancePoint(timestamp = currentYear.atStartOfDay(), balance = totalAmount, currency = currency))
                         currentYear = currentYear.plusYears(1)
                     }
@@ -786,12 +770,8 @@ class AnalyticsViewModel @Inject constructor(
                         val endOfMonth = currentMonth.withDayOfMonth(currentMonth.lengthOfMonth())
                         val totalAmount = transactions.filter {
                             !it.dateTime.toLocalDate().isBefore(currentMonth) && !it.dateTime.toLocalDate().isAfter(endOfMonth)
-<<<<<<< HEAD
                         }.map(amountIn).sum().toBigDecimal()
                             .minus(refundsInRange(currentMonth, endOfMonth)).coerceAtLeast(BigDecimal.ZERO)
-=======
-                        }.fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                         trend.add(BalancePoint(timestamp = currentMonth.atStartOfDay(), balance = totalAmount, currency = currency))
                         currentMonth = currentMonth.plusMonths(1)
                     }
@@ -801,12 +781,8 @@ class AnalyticsViewModel @Inject constructor(
                 val transactionsByDate = transactions.groupBy { it.dateTime.toLocalDate() }
                 var currentDate = startDate
                 while (!currentDate.isAfter(endDate) && !currentDate.isAfter(LocalDate.now())) {
-<<<<<<< HEAD
                     val totalAmount = ((transactionsByDate[currentDate] ?: emptyList()).map(amountIn).sum().toBigDecimal() -
                         (refundByDay[currentDate] ?: BigDecimal.ZERO)).coerceAtLeast(BigDecimal.ZERO)
-=======
-                    val totalAmount = (transactionsByDate[currentDate] ?: emptyList()).fold(BigDecimal.ZERO) { acc, tx -> acc + tx.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                     trend.add(BalancePoint(timestamp = currentDate.atStartOfDay(), balance = totalAmount, currency = currency))
                     currentDate = currentDate.plusDays(1)
                 }

@@ -64,6 +64,11 @@ class MainActivity : FragmentActivity() {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Recents privacy blur & screen capture protection
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_SECURE,
+            android.view.WindowManager.LayoutParams.FLAG_SECURE
+        )
 
         // Handle intent if activity is launched from notification
         handleEditIntent(intent)

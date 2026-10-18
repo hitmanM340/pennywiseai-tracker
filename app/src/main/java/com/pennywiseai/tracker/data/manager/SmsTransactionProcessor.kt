@@ -23,11 +23,7 @@ import com.pennywiseai.tracker.data.repository.MerchantMappingRepository
 import com.pennywiseai.tracker.data.repository.SubscriptionRepository
 import com.pennywiseai.tracker.data.repository.TagRepository
 import com.pennywiseai.tracker.data.repository.TransactionRepository
-<<<<<<< HEAD
 import com.pennywiseai.tracker.domain.model.rule.tagChanges
-=======
-import com.pennywiseai.tracker.data.database.dao.CustomParserRuleDao
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 import com.pennywiseai.tracker.domain.repository.RuleRepository
 import com.pennywiseai.tracker.domain.service.RuleEngine
 import java.math.BigDecimal
@@ -54,13 +50,9 @@ class SmsTransactionProcessor @Inject constructor(
     private val subscriptionRepository: SubscriptionRepository,
     private val ruleRepository: RuleRepository,
     private val ruleEngine: RuleEngine,
-<<<<<<< HEAD
     private val tagRepository: TagRepository,
     private val ignoredAccountsStore: IgnoredAccountsStore,
     private val database: PennyWiseDatabase
-=======
-    private val customParserRuleDao: CustomParserRuleDao
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 ) {
     private val bankAccountMerges = BankAccountMergeStore(appContext)
     companion object {
@@ -98,7 +90,6 @@ class SmsTransactionProcessor @Inject constructor(
         try {
             // First, try standard built-in parsers
             val parsers = BankParserFactory.getParsers(sender)
-<<<<<<< HEAD
             var parsedTransaction = if (parsers.isNotEmpty()) {
                 parsers.firstNotNullOfOrNull { it.parse(body, sender, timestamp) }
             } else {
@@ -127,22 +118,6 @@ class SmsTransactionProcessor @Inject constructor(
 
             if (parsedTransaction == null) {
                 return ProcessingResult(false, reason = "Could not parse transaction from SMS: $sender")
-=======
-            var parsedTransaction: ParsedTransaction? = null
-            
-            if (parsers.isNotEmpty()) {
-                parsedTransaction = parsers.firstNotNullOfOrNull { it.parse(body, sender, timestamp) }
-            }
-
-            // Fallback: If no parser matched or was found, check user-defined custom rules from the database
-            if (parsedTransaction == null) {
-                Log.d(TAG, "Standard parser failed or absent for $sender. Checking custom parser rules...")
-                parsedTransaction = parseWithCustomRules(sender, body, timestamp)
-            }
-
-            if (parsedTransaction == null) {
-                return ProcessingResult(false, reason = "Could not parse transaction from SMS or custom rules")
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
             }
 
             Log.d(TAG, "Parsed transaction: ${parsedTransaction.amount} from ${parsedTransaction.bankName}")
@@ -155,91 +130,7 @@ class SmsTransactionProcessor @Inject constructor(
         }
     }
 
-    /**
-     * Attempts to parse raw SMS or notification body using custom user-defined regex rules.
-     * Loops through rules for the matching package/sender, extracts amount and merchant,
-     * and constructs a ParsedTransaction if matching.
-     */
-    private suspend fun parseWithCustomRules(
-        sender: String,
-        body: String,
-        timestamp: Long
-    ): ParsedTransaction? {
-        val rules = customParserRuleDao.getRulesForSender(sender)
-        if (rules.isEmpty()) return null
 
-        // Loop through each rule to see if it matches the notification/SMS text.
-        // Similar to a for loop in Python: `for rule in rules:`
-        for (rule in rules) {
-            try {
-                // Compile the pattern dynamically. We ignore casing for user flexibility.
-                val regex = Regex(rule.regexPattern, RegexOption.IGNORE_CASE)
-                
-                // Kotlin's Regex.find matches standard regex patterns like in C/Python.
-                // It searches the text and returns the first match or null.
-                val matchResult = regex.find(body)
-                if (matchResult != null) {
-                    // matchResult.groupValues[index] contains captured content (like match.group(index) in Python)
-                    // Index 0 represents the whole matched string. Capture groups start at 1.
-                    val amountStr = matchResult.groupValues.getOrNull(rule.amountGroupIndex)
-                        ?.replace(",", "") ?: continue
-                        
-                    val amount = try {
-                        BigDecimal(amountStr)
-                    } catch (e: NumberFormatException) {
-                        continue // Invalid amount string format (e.g., failed to convert to number), try next rule
-                    }
-
-                    // Extract the Merchant/Payee name
-                    val merchant = matchResult.groupValues.getOrNull(rule.merchantGroupIndex)?.trim()
-
-                    // Extract account last 4 digits (if the rule has mapped it)
-                    val accountLast4 = if (rule.accountGroupIndex != -1) {
-                        matchResult.groupValues.getOrNull(rule.accountGroupIndex)
-                            ?.trim()
-                            ?.filter { it.isDigit() }
-                            ?.takeLast(4)
-                    } else {
-                        null
-                    }
-
-                    // Safely translate string type to com.pennywiseai.parser.core.TransactionType enum
-                    val type = try {
-                        com.pennywiseai.parser.core.TransactionType.valueOf(rule.type.uppercase())
-                    } catch (e: Exception) {
-                        com.pennywiseai.parser.core.TransactionType.EXPENSE
-                    }
-
-                    // Give a friendly bank display name based on sender/package
-                    val bankName = when (sender) {
-                        "GPay" -> "Google Pay"
-                        "SBI" -> "State Bank of India"
-                        else -> sender
-                    }
-
-                    Log.d(TAG, "Successfully matched custom parser rule '${rule.ruleName}' for $sender")
-                    
-                    return ParsedTransaction(
-                        amount = amount,
-                        type = type,
-                        merchant = merchant,
-                        reference = null,
-                        accountLast4 = accountLast4,
-                        balance = null,
-                        smsBody = body,
-                        sender = sender,
-                        timestamp = timestamp,
-                        bankName = bankName,
-                        isFromCard = false,
-                        currency = "INR"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error matching custom rule: ${rule.ruleName}", e)
-            }
-        }
-        return null
-    }
 
     /**
      * Saves a parsed transaction to the database with all necessary processing:

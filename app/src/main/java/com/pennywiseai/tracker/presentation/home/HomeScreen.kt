@@ -91,6 +91,8 @@ import com.pennywiseai.tracker.ui.components.SmsParsingProgressDialog
 import com.pennywiseai.tracker.ui.components.cards.AccountCarousel
 import com.pennywiseai.tracker.ui.components.cards.BudgetCarousel
 import com.pennywiseai.tracker.ui.components.cards.CashFlowCard
+import com.pennywiseai.tracker.ui.components.cards.WealthCockpitCard
+import com.pennywiseai.tracker.ui.components.cards.TransactionSentryCard
 import com.pennywiseai.tracker.ui.components.cards.GroupCard
 import com.pennywiseai.tracker.ui.components.cards.GroupedRow
 import com.pennywiseai.tracker.ui.components.cards.ListItemPosition
@@ -545,6 +547,27 @@ fun HomeScreen(
                         transfers = uiState.currentMonthTransfer,
                         isBalanceHidden = uiState.isBalanceHidden,
                         onToggleBalanceVisibility = { viewModel.toggleBalanceVisibility() },
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    )
+                }
+            }
+
+            uiState.wealthIntelligence?.let { report ->
+                item(key = "wealth_intelligence_cockpit") {
+                    WealthCockpitCard(
+                        netWorth = report.netWorth,
+                        emergencyRunway = report.emergencyRunway,
+                        engine = viewModel.wealthIntelligenceEngine,
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    )
+                }
+            }
+
+            uiState.sentryAudit?.let { sentry ->
+                item(key = "transaction_sentry_guardian") {
+                    TransactionSentryCard(
+                        report = sentry,
+                        currency = uiState.selectedCurrency,
                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                     )
                 }

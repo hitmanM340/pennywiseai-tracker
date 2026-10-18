@@ -1,17 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-<<<<<<< HEAD
     <!-- Exclude hardware-backed Keystore preferences from cloud backup to prevent restore crashes -->
     <exclude domain="sharedpref" path="pennywise_secure_prefs.xml" />
     <exclude domain="sharedpref" path="database_key_prefs.xml" />
     <exclude domain="sharedpref" path="device_encryption_prefs.xml" />
     <exclude domain="database" path="pennywise_database" />
-=======
-    <!-- Exclude encrypted local SQLite database from unencrypted backups -->
-    <exclude domain="database" path="pennywise_database"/>
-    <exclude domain="database" path="pennywise_database-wal"/>
-    <exclude domain="database" path="pennywise_database-shm"/>
-    <!-- Exclude secure database key shared preferences -->
-    <exclude domain="sharedpref" path="pennywise_secure_prefs.xml"/>
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 </full-backup-content>

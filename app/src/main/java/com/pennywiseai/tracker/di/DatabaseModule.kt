@@ -27,13 +27,10 @@ import com.pennywiseai.tracker.data.database.dao.TagDao
 import com.pennywiseai.tracker.data.database.dao.TransactionDao
 import com.pennywiseai.tracker.data.database.dao.TransactionSplitDao
 import com.pennywiseai.tracker.data.database.dao.UnrecognizedSmsDao
-<<<<<<< HEAD
 import com.pennywiseai.tracker.data.database.dao.WebhookProfileDao
 import com.pennywiseai.tracker.data.database.dao.WebhookLogDao
 import com.pennywiseai.tracker.data.database.dao.WebhookCursorDao
 import com.pennywiseai.tracker.data.database.dao.GoalDao
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 import com.pennywiseai.tracker.data.database.dao.CustomParserRuleDao
 import dagger.Module
 import dagger.Provides
@@ -318,7 +315,6 @@ object DatabaseModule {
     @Provides @Singleton fun provideWebhookLogDao(database: PennyWiseDatabase): WebhookLogDao = database.webhookLogDao()
     @Provides @Singleton fun provideWebhookCursorDao(database: PennyWiseDatabase): WebhookCursorDao = database.webhookCursorDao()
     @Provides @Singleton fun provideGoalDao(database: PennyWiseDatabase): GoalDao = database.goalDao()
-    @Provides @Singleton fun provideCustomParserRuleDao(database: PennyWiseDatabase): CustomParserRuleDao = database.customParserRuleDao()
 }
 
 /**

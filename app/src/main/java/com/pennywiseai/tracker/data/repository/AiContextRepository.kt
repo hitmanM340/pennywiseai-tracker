@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.repository
+﻿package com.pennywiseai.tracker.data.repository
 
 import com.pennywiseai.tracker.data.database.dao.SubscriptionDao
 import com.pennywiseai.tracker.data.database.dao.TransactionDao
@@ -222,7 +222,6 @@ class AiContextRepository @Inject constructor(
         val expenses = transactions.filter { it.transactionType == TransactionType.EXPENSE }
         
         // Calculate average daily spending
-<<<<<<< HEAD
         val convertedAmounts = expenses.mapNotNull {
             currencyConversionService.convertAmountOrNull(
                 amount = it.amount,
@@ -231,9 +230,6 @@ class AiContextRepository @Inject constructor(
             )
         }
         val totalExpense = convertedAmounts.fold(BigDecimal.ZERO) { acc, amount -> acc.add(amount) }
-=======
-        val totalExpense = expenses.fold(BigDecimal.ZERO) { acc, txn -> acc + txn.amount }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         val daysElapsed = currentDate.dayOfMonth
         val avgDailySpending = if (daysElapsed > 0) {
             totalExpense.divide(BigDecimal(daysElapsed), 2, RoundingMode.HALF_UP)

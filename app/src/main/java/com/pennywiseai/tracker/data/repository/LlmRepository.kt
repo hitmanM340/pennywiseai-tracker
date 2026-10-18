@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.repository
+﻿package com.pennywiseai.tracker.data.repository
 
 import android.util.Log
 import com.pennywiseai.tracker.data.database.dao.ChatDao
@@ -339,18 +339,12 @@ class LlmRepository @Inject constructor(
     private suspend fun buildSystemPrompt(context: ChatContext): String {
         val monthSummary = context.monthSummary
         val currency = userPreferencesRepository.baseCurrency.first()
-<<<<<<< HEAD
         val categories = categoryRepository.getVisibleCategories().first()
         val expense = categories.filter { !it.isIncome }.joinToString(", ") { it.name }
         val income = categories.filter { it.isIncome }.joinToString(", ") { it.name }
         val accounts = accountBalanceRepository.getAllLatestBalancesOnce()
             .joinToString(", ") { it.alias ?: "${it.bankName} ${it.accountLast4}" }
             .ifEmpty { "none yet" }
-=======
-
-        val totalSubAmount = activeSubs.fold(BigDecimal.ZERO) { acc, sub -> acc + sub.amount }
-        val upcomingPayments = activeSubs.filter { it.nextPaymentDays <= 7 }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 
         return """
         $PROMPT_MARKER

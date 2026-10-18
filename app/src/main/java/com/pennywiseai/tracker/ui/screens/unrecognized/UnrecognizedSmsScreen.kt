@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.ui.screens.unrecognized
+﻿package com.pennywiseai.tracker.ui.screens.unrecognized
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -283,7 +283,6 @@ fun UnrecognizedSmsScreen(
     // Create Custom Rule Dialog
     messageForRuleCreation?.let { message ->
         CreateCustomRuleDialog(
-<<<<<<< HEAD
             initialSender = message.sender,
             sampleSmsBody = message.smsBody,
             onDismiss = { messageForRuleCreation = null },
@@ -297,12 +296,6 @@ fun UnrecognizedSmsScreen(
                     transactionType = transactionType,
                     originalMessageId = message.id
                 )
-=======
-            unrecognizedSms = message,
-            onDismiss = { messageForRuleCreation = null },
-            onSaveRule = { rule ->
-                viewModel.saveCustomRule(rule, message.id)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 messageForRuleCreation = null
             }
         )

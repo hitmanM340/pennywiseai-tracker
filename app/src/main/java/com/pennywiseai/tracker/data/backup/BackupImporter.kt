@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.backup
+﻿package com.pennywiseai.tracker.data.backup
 
 import com.pennywiseai.tracker.data.preferences.BankAccountMergeStore
 import com.pennywiseai.tracker.data.database.entity.builtinKey
@@ -38,13 +38,8 @@ class BackupImporter @Inject constructor(
      */
     suspend fun importBackup(
         uri: Uri,
-<<<<<<< HEAD
         strategy: ImportStrategy = ImportStrategy.MERGE,
         password: CharArray? = null
-=======
-        password: CharArray,
-        strategy: ImportStrategy = ImportStrategy.MERGE
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     ): ImportResult = withContext(Dispatchers.IO) {
         try {
             // Read and parse the backup file
@@ -80,7 +75,6 @@ class BackupImporter @Inject constructor(
     /**
      * Read and parse backup file (decrypting if header matches PWENC1)
      */
-<<<<<<< HEAD
     private suspend fun readBackupFile(uri: Uri, password: CharArray? = null): PennyWiseBackup {
         return withContext(Dispatchers.IO) {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
@@ -96,30 +90,6 @@ class BackupImporter @Inject constructor(
                     bytes
                 }
                 val content = String(plainBytes, Charsets.UTF_8)
-=======
-    private suspend fun readBackupFile(uri: Uri, password: CharArray): PennyWiseBackup {
-        return withContext(Dispatchers.IO) {
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                val bytes = inputStream.readBytes()
-                val content = if (BackupEncryptor.hasMagicHeader(bytes)) {
-                    // New encrypted path
-                    val decryptedBytes = BackupEncryptor.decrypt(bytes, password)
-                    String(decryptedBytes, Charsets.UTF_8)
-                } else {
-                    // FALLBACK PATHWAY: Old plaintext JSON parser for backward compatibility
-                    val plainText = String(bytes, Charsets.UTF_8)
-                    if (plainText.trim().startsWith("{") || plainText.trim().startsWith("[")) {
-                        plainText
-                    } else {
-                        throw IllegalArgumentException("Unknown backup file format profile")
-                    }
-                }
-                // backupJson tolerates missing keys (older backups → Kotlin
-                // defaults) and unknown keys (newer backups → ignored). The
-                // old Gson `normalized()` net is no longer needed because the
-                // `= emptyList()` / field defaults on the models now actually
-                // apply. See BackupSerializers + docs/backup-format.md.
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 backupJson.decodeFromString<PennyWiseBackup>(content)
             } ?: throw Exception("Failed to read backup file")
         }

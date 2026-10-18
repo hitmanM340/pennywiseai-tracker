@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.database
+﻿package com.pennywiseai.tracker.data.database
 
 import androidx.room.AutoMigration
 import androidx.room.Database
@@ -32,13 +32,9 @@ import com.pennywiseai.tracker.data.database.dao.SubscriptionDao
 import com.pennywiseai.tracker.data.database.dao.TransactionDao
 import com.pennywiseai.tracker.data.database.dao.TransactionSplitDao
 import com.pennywiseai.tracker.data.database.dao.UnrecognizedSmsDao
-<<<<<<< HEAD
 import com.pennywiseai.tracker.data.database.dao.GoalDao
 import com.pennywiseai.tracker.data.database.entity.GoalContributionEntity
 import com.pennywiseai.tracker.data.database.entity.GoalEntity
-=======
-import com.pennywiseai.tracker.data.database.dao.CustomParserRuleDao
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 import com.pennywiseai.tracker.data.database.entity.AccountBalanceEntity
 import com.pennywiseai.tracker.data.database.entity.ProfileEntity
 import com.pennywiseai.tracker.data.database.entity.TagEntity
@@ -71,10 +67,7 @@ import com.pennywiseai.tracker.data.database.entity.SubscriptionEntity
 import com.pennywiseai.tracker.data.database.entity.TransactionEntity
 import com.pennywiseai.tracker.data.database.entity.TransactionSplitEntity
 import com.pennywiseai.tracker.data.database.entity.UnrecognizedSmsEntity
-<<<<<<< HEAD
 import com.pennywiseai.tracker.data.database.dao.CustomParserRuleDao
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 import com.pennywiseai.tracker.data.database.entity.CustomParserRuleEntity
 
 /**
@@ -84,11 +77,7 @@ import com.pennywiseai.tracker.data.database.entity.CustomParserRuleEntity
  * that needs to record the version it was exported against. Bump this in lock-
  * step with any schema change.
  */
-<<<<<<< HEAD
 const val SCHEMA_VERSION = 67
-=======
-const val SCHEMA_VERSION = 51
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 
 /**
  * The PennyWise Room database.
@@ -101,11 +90,7 @@ const val SCHEMA_VERSION = 51
  * @property autoMigrations List of automatic migrations between versions.
  */
 @Database(
-<<<<<<< HEAD
     entities = [TransactionEntity::class, SubscriptionEntity::class, ChatMessage::class, MerchantMappingEntity::class, MerchantAliasEntity::class, CategoryEntity::class, AccountBalanceEntity::class, UnrecognizedSmsEntity::class, CardEntity::class, RuleEntity::class, RuleApplicationEntity::class, ExchangeRateEntity::class, BudgetEntity::class, BudgetCategoryEntity::class, BudgetMonthSnapshotEntity::class, BudgetCategoryMonthSnapshotEntity::class, TransactionSplitEntity::class, BankNotificationEntity::class, LoanEntity::class, TransactionGroupEntity::class, ProfileEntity::class, TagEntity::class, TransactionTagCrossRef::class, RecurringTransactionEntity::class, WebhookProfileEntity::class, WebhookLogEntity::class, WebhookCursorEntity::class, WebhookDeliveredTransactionEntity::class, GoalEntity::class, GoalContributionEntity::class, CustomParserRuleEntity::class],
-=======
-    entities = [TransactionEntity::class, SubscriptionEntity::class, ChatMessage::class, MerchantMappingEntity::class, CategoryEntity::class, AccountBalanceEntity::class, UnrecognizedSmsEntity::class, CardEntity::class, RuleEntity::class, RuleApplicationEntity::class, ExchangeRateEntity::class, BudgetEntity::class, BudgetCategoryEntity::class, BudgetMonthSnapshotEntity::class, BudgetCategoryMonthSnapshotEntity::class, TransactionSplitEntity::class, BankNotificationEntity::class, LoanEntity::class, TransactionGroupEntity::class, ProfileEntity::class, CustomParserRuleEntity::class],
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     version = SCHEMA_VERSION,
     exportSchema = true,
     autoMigrations = [
@@ -184,7 +169,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
     abstract fun transactionGroupDao(): TransactionGroupDao
     abstract fun budgetSnapshotDao(): BudgetSnapshotDao
     abstract fun profileDao(): ProfileDao
-<<<<<<< HEAD
     abstract fun tagDao(): TagDao
     abstract fun recurringTransactionDao(): RecurringTransactionDao
     abstract fun webhookProfileDao(): WebhookProfileDao
@@ -192,8 +176,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
     abstract fun webhookDeliveredTransactionDao(): WebhookDeliveredTransactionDao
     abstract fun webhookCursorDao(): WebhookCursorDao
     abstract fun goalDao(): GoalDao
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     abstract fun customParserRuleDao(): CustomParserRuleDao
 
     companion object {
@@ -554,7 +536,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
             }
         }
 
-<<<<<<< HEAD
         val MIGRATION_50_51 = object : Migration(50, 51) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Per-transaction "exclude from analytics" flag (#451).
@@ -680,27 +661,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
                         "`created_at` TEXT NOT NULL, " +
                         "`updated_at` TEXT NOT NULL)"
                 )
-=======
-        /**
-         * Creates the custom_parser_rules table to store dynamic notification parser rules.
-         */
-        val MIGRATION_50_51 = object : Migration(50, 51) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("""
-                    CREATE TABLE IF NOT EXISTS `custom_parser_rules` (
-                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        `package_or_sender` TEXT NOT NULL,
-                        `rule_name` TEXT NOT NULL,
-                        `regex_pattern` TEXT NOT NULL,
-                        `amount_group_index` INTEGER NOT NULL,
-                        `merchant_group_index` INTEGER NOT NULL,
-                        `type` TEXT NOT NULL,
-                        `account_group_index` INTEGER NOT NULL,
-                        `is_active` INTEGER NOT NULL,
-                        `created_at` INTEGER NOT NULL
-                    )
-                """.trimIndent())
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
             }
         }
 
@@ -851,7 +811,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
             MIGRATION_48_49,
             MIGRATION_49_50,
             MIGRATION_50_51,
-<<<<<<< HEAD
             MIGRATION_51_52,
             MIGRATION_52_53,
             MIGRATION_53_54,
@@ -865,8 +824,6 @@ abstract class PennyWiseDatabase : RoomDatabase() {
             MIGRATION_63_64,
             MIGRATION_64_65,
             MIGRATION_66_67,
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         )
     }
     

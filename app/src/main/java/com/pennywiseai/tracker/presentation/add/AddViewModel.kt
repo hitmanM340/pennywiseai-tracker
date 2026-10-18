@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.presentation.add
+﻿package com.pennywiseai.tracker.presentation.add
 
 import com.pennywiseai.tracker.ui.UiText
 import com.pennywiseai.tracker.R
@@ -688,15 +688,9 @@ class AddViewModel @Inject constructor(
     // Validation helpers
     private fun validateAmount(amount: String): UiText? {
         return when {
-<<<<<<< HEAD
             amount.isBlank() -> UiText.Res(R.string.add_error_amount_required)
             amount.toDoubleOrNull() == null -> UiText.Res(R.string.add_error_amount_invalid)
             amount.toDouble() <= 0 -> UiText.Res(R.string.add_error_amount_positive)
-=======
-            amount.isBlank() -> "Amount is required"
-            amount.toBigDecimalOrNull() == null -> "Invalid amount"
-            (amount.toBigDecimalOrNull() ?: BigDecimal.ZERO) <= BigDecimal.ZERO -> "Amount must be greater than 0"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
             else -> null
         }
     }
@@ -746,7 +740,6 @@ data class TransactionUiState(
     val budgetCategory: String? = null
 ) {
     val isValid: Boolean
-<<<<<<< HEAD
         get() {
             val amountOk = amount.isNotBlank() &&
                     amount.toDoubleOrNull() != null &&
@@ -768,17 +761,6 @@ data class TransactionUiState(
                     categoryError == null &&
                     (budgetImpactType == null || budgetCategory != null)
         }
-=======
-        get() = amount.isNotBlank() &&
-                amount.toBigDecimalOrNull() != null &&
-                (amount.toBigDecimalOrNull() ?: BigDecimal.ZERO) > BigDecimal.ZERO &&
-                merchant.isNotBlank() &&
-                category.isNotBlank() &&
-                amountError == null &&
-                merchantError == null &&
-                categoryError == null &&
-                (budgetImpactType == null || budgetCategory != null)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 }
 
 data class SubscriptionUiState(

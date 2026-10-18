@@ -1,11 +1,8 @@
-package com.pennywiseai.tracker.data.backup
+﻿package com.pennywiseai.tracker.data.backup
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-<<<<<<< HEAD
 import org.junit.Assert.assertFalse
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,10 +16,7 @@ class BackupEncryptorTest {
 
         // Encrypt
         val encrypted = BackupEncryptor.encrypt(testData, password)
-<<<<<<< HEAD
         assertTrue(BackupEncryptor.isEncrypted(encrypted))
-=======
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         assertTrue(encrypted.size > 32) // MAGIC + SALT + IV + TAG + CIPHERTEXT
 
         // Decrypt
@@ -59,24 +53,16 @@ class BackupEncryptorTest {
         encrypted[0] = 0x00
         encrypted[1] = 0x00
 
-<<<<<<< HEAD
         assertFalse(BackupEncryptor.isEncrypted(encrypted))
         val exception = assertThrows(IllegalArgumentException::class.java) {
             BackupEncryptor.decrypt(encrypted, password)
         }
         assertTrue(exception.message!!.contains("Invalid encrypted backup header"))
-=======
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            BackupEncryptor.decrypt(encrypted, password)
-        }
-        assertTrue(exception.message!!.contains("magic bytes mismatch"))
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 
     @Test
     fun testDecryptTooShortDataThrows() {
         val password = "Password".toCharArray()
-<<<<<<< HEAD
         val tooShort = byteArrayOf(0x50, 0x57, 0x45, 0x4E, 0x43, 0x31) // PWENC1 only (6 bytes)
 
         assertFalse(BackupEncryptor.isEncrypted(tooShort))
@@ -84,13 +70,5 @@ class BackupEncryptorTest {
             BackupEncryptor.decrypt(tooShort, password)
         }
         assertTrue(exception.message!!.contains("Invalid encrypted backup header"))
-=======
-        val tooShort = byteArrayOf(0x50, 0x57, 0x42, 0x4B, 0x01) // Magic bytes + 1 byte
-
-        val exception = assertThrows(IllegalArgumentException::class.java) {
-            BackupEncryptor.decrypt(tooShort, password)
-        }
-        assertTrue(exception.message!!.contains("too short"))
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
 }

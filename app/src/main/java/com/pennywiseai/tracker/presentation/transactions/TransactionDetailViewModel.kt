@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.presentation.transactions
+﻿package com.pennywiseai.tracker.presentation.transactions
 
 import com.pennywiseai.tracker.data.mapper.withTransferAccount
 
@@ -1100,17 +1100,7 @@ class TransactionDetailViewModel @Inject constructor(
         val txn = _transaction.value ?: return ""
         val smsBody = txn.smsBody ?: "Transaction: ${txn.merchantName} - ${txn.amount}"
         android.util.Log.d("TransactionDetailVM", "Generating report URL for transaction")
-<<<<<<< HEAD
         val url = SmsReportUrlBuilder.buildUrl(context, smsBody, txn.smsSender)
-=======
-        
-        // URL encode the parameters
-        val encodedMessage = java.net.URLEncoder.encode(smsBody, "UTF-8")
-        val encodedSender = java.net.URLEncoder.encode(sender, "UTF-8")
-        
-        // Create the report URL using hash fragment for privacy
-        val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&autoparse=true"
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
         android.util.Log.d("TransactionDetailVM", "Report URL: ${url.take(200)}...")
         return url
     }

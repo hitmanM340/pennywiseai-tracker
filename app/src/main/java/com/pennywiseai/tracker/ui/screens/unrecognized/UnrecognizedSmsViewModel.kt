@@ -16,18 +16,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.pennywiseai.tracker.data.database.dao.CustomParserRuleDao
-import com.pennywiseai.tracker.data.database.entity.CustomParserRuleEntity
 import com.pennywiseai.tracker.utils.SmsReportUrlBuilder
 import javax.inject.Inject
 
 @HiltViewModel
 class UnrecognizedSmsViewModel @Inject constructor(
-<<<<<<< HEAD
     @param:ApplicationContext private val context: Context,
-=======
-    @ApplicationContext private val context: Context,
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     private val unrecognizedSmsRepository: UnrecognizedSmsRepository,
     private val customParserRuleDao: CustomParserRuleDao
 ) : ViewModel() {
@@ -60,19 +54,8 @@ class UnrecognizedSmsViewModel @Inject constructor(
     fun reportMessage(message: UnrecognizedSmsEntity) {
         viewModelScope.launch {
             try {
-<<<<<<< HEAD
                 val url = SmsReportUrlBuilder.buildUrl(context, message.smsBody, message.sender)
                 Log.d("UnrecognizedSmsViewModel", "Full URL length: ${url.length}")
-=======
-                // URL encode the parameters
-                val encodedMessage = URLEncoder.encode(message.smsBody, "UTF-8")
-                val encodedSender = URLEncoder.encode(message.sender, "UTF-8")
-                
-                // Create the report URL using hash fragment for privacy
-                val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&autoparse=true"
-                
-                // Open in browser
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }
@@ -111,7 +94,6 @@ class UnrecognizedSmsViewModel @Inject constructor(
         }
     }
 
-<<<<<<< HEAD
     fun saveCustomRule(
         name: String,
         senderPattern: String,
@@ -132,18 +114,6 @@ class UnrecognizedSmsViewModel @Inject constructor(
                     transactionType = transactionType
                 )
                 customParserRuleDao.insert(rule)
-=======
-    /**
-     * Saves a user-defined custom parsing rule to the database and marks the source
-     * unrecognized message as reported/processed so it drops off the UI checklist.
-     */
-    fun saveCustomRule(rule: CustomParserRuleEntity, originalMessageId: Long) {
-        viewModelScope.launch {
-            try {
-                // Save custom rule
-                customParserRuleDao.insert(rule)
-                // Mark original message as reported (so it is processed / no longer listed as raw unrecognized)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
                 unrecognizedSmsRepository.markAsReported(listOf(originalMessageId))
                 Log.d("UnrecognizedSmsViewModel", "Saved custom rule and marked unrecognized SMS $originalMessageId as reported.")
             } catch (e: Exception) {

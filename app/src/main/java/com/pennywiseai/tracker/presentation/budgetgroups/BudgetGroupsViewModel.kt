@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.presentation.budgetgroups
+﻿package com.pennywiseai.tracker.presentation.budgetgroups
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -221,78 +221,12 @@ class BudgetGroupsViewModel @Inject constructor(
                 val d = tx.dateTime.toLocalDate()
                 val inWindow = !d.isBefore(minStart) && !d.isAfter(maxEnd)
 
-<<<<<<< HEAD
                 if (inWindow && tx.transactionType == TransactionType.INCOME &&
                     !(tx.budgetImpactType == BudgetImpactType.DEDUCT_SPENT && tx.budgetCategory != null)
                 ) currencyConversionService.convertAmountOrNull(tx.amount, tx.currency, displayCurrency)
                     ?.let { acc + it } ?: acc
                 else acc
             }
-=======
-        data class ConvertedTxDay(val day: Int, val categoryAmounts: Map<String, BigDecimal>)
-        val convertedTxDays = raw.allTransactions.mapNotNull { txWithSplits ->
-            val tx = txWithSplits.transaction
-            if (tx.transactionType == TransactionType.INCOME ||
-                tx.transactionType == TransactionType.TRANSFER ||
-                tx.transactionType == TransactionType.INVESTMENT ||
-                tx.loanId != null
-            ) return@mapNotNull null
-            val day = tx.dateTime.dayOfMonth.coerceIn(1, daysInMonth)
-            val catAmounts = txWithSplits.getAmountByCategory().mapValues { (_, amount) ->
-                currencyConversionService.convertAmount(amount, tx.currency, displayCurrency)
-            }.mapKeys { (cat, _) -> cat.ifEmpty { "Others" } }
-            ConvertedTxDay(day, catAmounts)
-        }
-
-        // Pre-convert Refund (DEDUCT_SPENT) income amounts on the day they occurred
-        // so the pace chart subtracts them in lockstep with the displayed "actual".
-        data class ConvertedRefundDay(val day: Int, val category: String, val amount: BigDecimal)
-        val convertedRefundDays = raw.allTransactions.mapNotNull { txWithSplits ->
-            val tx = txWithSplits.transaction
-            if (tx.transactionType != TransactionType.INCOME) return@mapNotNull null
-            if (tx.budgetImpactType != BudgetImpactType.DEDUCT_SPENT) return@mapNotNull null
-            val category = tx.budgetCategory ?: return@mapNotNull null
-            val day = tx.dateTime.dayOfMonth.coerceIn(1, daysInMonth)
-            val amount = currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
-            ConvertedRefundDay(day, category, amount)
-        }
-
-        fun buildGroupPaceUnified(
-            categoryNames: Set<String>?,
-            groupBudget: BigDecimal
-        ): Pair<List<BigDecimal>, List<BigDecimal>> {
-            if (effectiveDays < 1) return emptyList<BigDecimal>() to emptyList()
-            val dailyAmounts = Array(daysInMonth) { BigDecimal.ZERO }
-            convertedTxDays.forEach { txDay ->
-                if (categoryNames == null) {
-                    dailyAmounts[txDay.day - 1] = dailyAmounts[txDay.day - 1] + txDay.categoryAmounts.values.fold(BigDecimal.ZERO) { acc, v -> acc + v }
-                } else {
-                    txDay.categoryAmounts.forEach { (cat, amount) ->
-                        if (cat in categoryNames) dailyAmounts[txDay.day - 1] = dailyAmounts[txDay.day - 1] + amount
-                    }
-                }
-            }
-            convertedRefundDays.forEach { refundDay ->
-                if (categoryNames == null || refundDay.category in categoryNames) {
-                    dailyAmounts[refundDay.day - 1] = dailyAmounts[refundDay.day - 1] - refundDay.amount
-                }
-            }
-            // Carry the running total forward unclamped so a refund dated before
-            // the first expense still nets out; only the emitted value is clamped
-            // so the endpoint matches aggregateBudgetCategorySpending's floor.
-            val cumulative = mutableListOf<BigDecimal>()
-            var runningNet = BigDecimal.ZERO
-            for (i in 0 until effectiveDays) {
-                runningNet = runningNet + dailyAmounts[i]
-                cumulative.add(runningNet.coerceAtLeast(BigDecimal.ZERO))
-            }
-            val pace = if (groupBudget > BigDecimal.ZERO) {
-                val dp = groupBudget.divide(BigDecimal(daysInMonth), 4, RoundingMode.HALF_UP)
-                (1..effectiveDays).map { BigDecimal(it).multiply(dp) }
-            } else emptyList()
-            return cumulative to pace
-        }
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 
         val limitGroups = groupSpendings.filter { it.group.budget.groupType == BudgetGroupType.LIMIT }
         val targetGroups = groupSpendings.filter { it.group.budget.groupType == BudgetGroupType.TARGET }

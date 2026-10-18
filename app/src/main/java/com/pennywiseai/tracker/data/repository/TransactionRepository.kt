@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.repository
+﻿package com.pennywiseai.tracker.data.repository
 
 import com.pennywiseai.tracker.data.database.entity.currentNameFor
 import com.pennywiseai.tracker.data.database.dao.TransactionDao
@@ -122,7 +122,6 @@ open class TransactionRepository @Inject constructor(
         endDate: LocalDateTime
     ): Double? = transactionDao.getTotalAmountByTypeAndPeriod(type, startDate, endDate)
     
-<<<<<<< HEAD
     suspend fun insertTransaction(transaction: TransactionEntity): Long =
         transactionDao.insertTransaction(withCurrentCategoryNames(listOf(transaction)).single())
 
@@ -142,22 +141,6 @@ open class TransactionRepository @Inject constructor(
                 budgetCategory = tx.budgetCategory?.let { categories.currentNameFor(it) }
             )
         }
-=======
-    suspend fun insertTransaction(transaction: TransactionEntity): Long {
-        val windowStart = transaction.dateTime.minusSeconds(60)
-        val windowEnd = transaction.dateTime.plusSeconds(60)
-        
-        val duplicates = transactionDao.getTransactionByAmountAndDate(transaction.amount, windowStart, windowEnd)
-        val hasDuplicate = duplicates.any { existing ->
-            existing.transactionType == transaction.transactionType && existing.id != transaction.id
-        }
-        
-        if (hasDuplicate) {
-            return -1L
-        }
-        
-        return transactionDao.insertTransaction(transaction)
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
     }
     
     /**

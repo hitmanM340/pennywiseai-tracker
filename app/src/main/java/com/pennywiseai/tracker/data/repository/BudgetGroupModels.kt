@@ -1,4 +1,4 @@
-package com.pennywiseai.tracker.data.repository
+﻿package com.pennywiseai.tracker.data.repository
 
 import com.pennywiseai.tracker.data.database.entity.BudgetGroupType
 import com.pennywiseai.tracker.data.database.entity.BudgetPeriodType
@@ -79,7 +79,6 @@ data class BudgetGroupSpending(
     val daysRemaining: Int,
     val daysElapsed: Int,
     val isTrackingAllExpenses: Boolean = false,
-<<<<<<< HEAD
     val dailyCumulativeSpending: List<Double> = emptyList(),
     val dailyBudgetPace: List<Double> = emptyList(),
     /**
@@ -113,10 +112,6 @@ data class BudgetGroupSpending(
      * month and its cap is `today` (live, still accumulating).
      */
     val displayedIsLive: Boolean = false
-=======
-    val dailyCumulativeSpending: List<BigDecimal> = emptyList(),
-    val dailyBudgetPace: List<BigDecimal> = emptyList()
->>>>>>> 49bfb232429353af5c844b3b4c1157612982a742
 )
 
 data class BudgetOverallSummary(
