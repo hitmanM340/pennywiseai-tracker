@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CapybaraWallet"
+rootProject.name = "PennyWiseRevamped"
 include(":app")
 include(":parser-core")
 include(":shared")

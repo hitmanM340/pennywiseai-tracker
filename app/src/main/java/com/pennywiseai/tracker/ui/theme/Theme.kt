@@ -13,6 +13,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -126,6 +127,9 @@ fun PennyWiseTheme(
     isAmoledMode: Boolean = false,
     appFont: AppFont = AppFont.SYSTEM,
     blurEffects: Boolean = true,
+    surfaceMaterialStyle: SurfaceMaterialStyle = SurfaceMaterialStyle.LIQUID_GLASS,
+    capybaraPalette: CapybaraPalette = CapybaraPalette.YUZU_ESPRESSO,
+    glassIntensity: Float = 0.70f,
     content: @Composable () -> Unit
 ) {
     var colorScheme = when {
@@ -145,19 +149,19 @@ fun PennyWiseTheme(
         else -> LightColorScheme
     }
 
-    // Apply AMOLED black if enabled in dark mode
-    if (darkTheme && isAmoledMode) {
+    // Apply AMOLED black if enabled in dark mode OR if surface material is PURE_AMOLED in dark mode
+    if (darkTheme && (isAmoledMode || surfaceMaterialStyle == SurfaceMaterialStyle.PURE_AMOLED)) {
         colorScheme = colorScheme.copy(
-            background = amoled_background,
-            surface = amoled_surface,
+            background = Color.Black,
+            surface = Color(0xFF070709),
             surfaceVariant = amoled_surfaceVariant,
             surfaceBright = amoled_surfaceBright,
             surfaceDim = amoled_surfaceDim,
-            surfaceContainerLowest = amoled_surfaceContainerLowest,
-            surfaceContainerLow = amoled_surfaceContainerLow,
-            surfaceContainer = amoled_surfaceContainer,
-            surfaceContainerHigh = amoled_surfaceContainerHigh,
-            surfaceContainerHighest = amoled_surfaceContainerHighest,
+            surfaceContainerLowest = Color.Black,
+            surfaceContainerLow = Color(0xFF040405),
+            surfaceContainer = Color(0xFF070709),
+            surfaceContainerHigh = Color(0xFF0D0D10),
+            surfaceContainerHighest = Color(0xFF141418),
         )
     }
 
@@ -181,7 +185,18 @@ fun PennyWiseTheme(
         AppFont.SN_PRO -> SNProFontFamily
     }
 
-    CompositionLocalProvider(LocalBlurEffects provides blurEffects) {
+    val glassSpec = remember(surfaceMaterialStyle, capybaraPalette, glassIntensity) {
+        CapybaraGlassSpec(
+            style = surfaceMaterialStyle,
+            palette = capybaraPalette,
+            glassIntensity = glassIntensity
+        )
+    }
+
+    CompositionLocalProvider(
+        LocalBlurEffects provides blurEffects,
+        LocalCapybaraGlassSpec provides glassSpec
+    ) {
         MaterialExpressiveTheme(
             colorScheme = colorScheme,
             typography = getTypography(fontFamily = fontFamily),

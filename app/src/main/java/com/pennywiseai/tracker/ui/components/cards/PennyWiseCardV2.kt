@@ -1,6 +1,7 @@
 package com.pennywiseai.tracker.ui.components.cards
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import com.pennywiseai.tracker.ui.theme.CapybaraGlassBox
 import com.pennywiseai.tracker.ui.theme.Dimensions
+import com.pennywiseai.tracker.ui.theme.LocalCapybaraGlassSpec
+import com.pennywiseai.tracker.ui.theme.SurfaceMaterialStyle
 
 /**
  * The app's standard card container.
@@ -62,6 +66,31 @@ fun PennyWiseCardV2(
     contentPadding: Dp = Dimensions.Padding.card,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val glassSpec = LocalCapybaraGlassSpec.current
+    if (glassSpec.style != SurfaceMaterialStyle.MATTE_MINIMAL) {
+        val clickModifier = when {
+            onLongClick != null && onClick != null -> {
+                Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            }
+            onClick != null -> {
+                Modifier.clickable(onClick = onClick)
+            }
+            else -> Modifier
+        }
+        CapybaraGlassBox(
+            modifier = modifier.then(clickModifier),
+            materialStyle = glassSpec.style,
+            palette = glassSpec.palette,
+            glassIntensity = glassSpec.glassIntensity,
+            shape = shape
+        ) {
+            Column(modifier = Modifier.padding(contentPadding)) {
+                content()
+            }
+        }
+        return
+    }
+
     val effectiveBorder = border ?: if (isSystemInDarkTheme()) {
         BorderStroke(
             width = Dimensions.Component.hairline,

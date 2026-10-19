@@ -71,7 +71,7 @@ fun TransactionSentryCard(
                     }
                     Spacer(modifier = Modifier.width(Spacing.sm))
                     Text(
-                        text = "Transaction Sentry",
+                        text = "Revamped Sentry",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

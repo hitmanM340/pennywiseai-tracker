@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -33,7 +34,7 @@ enum class SurfaceMaterialStyle {
 }
 
 /**
- * Signature color palettes for Capybara Wallet.
+ * Signature color palettes for PennyWise Revamped.
  */
 enum class CapybaraPalette(
     val displayName: String,
@@ -44,7 +45,7 @@ enum class CapybaraPalette(
     val accentGlow: Color
 ) {
     YUZU_ESPRESSO(
-        displayName = "Yuzu Espresso",
+        displayName = "Revamped Amber",
         primaryColor = Color(0xFFF59E0B),
         secondaryColor = Color(0xFFD97706),
         tertiaryColor = Color(0xFF78350F),
@@ -196,4 +197,18 @@ fun CapybaraGlassBox(
             .border(renderStyle.borderWidth, renderStyle.borderBrush, renderStyle.shape),
         content = content
     )
+}
+
+/**
+ * Runtime specification for surface material, palette, and glass intensity.
+ */
+@Immutable
+data class CapybaraGlassSpec(
+    val style: SurfaceMaterialStyle = SurfaceMaterialStyle.LIQUID_GLASS,
+    val palette: CapybaraPalette = CapybaraPalette.YUZU_ESPRESSO,
+    val glassIntensity: Float = 0.70f
+)
+
+val LocalCapybaraGlassSpec = staticCompositionLocalOf {
+    CapybaraGlassSpec()
 }

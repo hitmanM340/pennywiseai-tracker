@@ -8,6 +8,8 @@ import com.pennywiseai.tracker.data.preferences.CoverStyle
 import com.pennywiseai.tracker.data.preferences.NavBarStyle
 import com.pennywiseai.tracker.data.preferences.ThemeStyle
 import com.pennywiseai.tracker.data.preferences.UserPreferencesRepository
+import com.pennywiseai.tracker.ui.theme.CapybaraPalette
+import com.pennywiseai.tracker.ui.theme.SurfaceMaterialStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +32,9 @@ class ThemeViewModel @Inject constructor(
                 themeStyle = preferences.themeStyle,
                 accentColor = preferences.accentColor,
                 isAmoledMode = preferences.isAmoledMode,
+                surfaceMaterialStyle = preferences.surfaceMaterialStyle,
+                capybaraPalette = preferences.capybaraPalette,
+                glassIntensity = preferences.glassIntensity,
                 appFont = preferences.appFont,
                 hasSkippedSmsPermission = preferences.hasSkippedSmsPermission,
                 blurEffectsEnabled = preferences.blurEffectsEnabled,
@@ -101,6 +106,24 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun updateSurfaceMaterialStyle(style: SurfaceMaterialStyle) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateSurfaceMaterialStyle(style)
+        }
+    }
+
+    fun updateCapybaraPalette(palette: CapybaraPalette) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateCapybaraPalette(palette)
+        }
+    }
+
+    fun updateGlassIntensity(intensity: Float) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateGlassIntensity(intensity)
+        }
+    }
+
     fun markOnboardingCompleted() {
         viewModelScope.launch {
             userPreferencesRepository.updateHasCompletedOnboarding(true)
@@ -115,6 +138,9 @@ data class ThemeUiState(
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
     val accentColor: AccentColor = AccentColor.SURFACE,
     val isAmoledMode: Boolean = false,
+    val surfaceMaterialStyle: SurfaceMaterialStyle = SurfaceMaterialStyle.LIQUID_GLASS,
+    val capybaraPalette: CapybaraPalette = CapybaraPalette.YUZU_ESPRESSO,
+    val glassIntensity: Float = 0.70f,
     val appFont: AppFont = AppFont.SYSTEM,
     val hasSkippedSmsPermission: Boolean = false,
     val blurEffectsEnabled: Boolean = true,

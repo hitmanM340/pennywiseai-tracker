@@ -8,6 +8,8 @@ import com.pennywiseai.tracker.data.repository.AppLockRepository
 import com.pennywiseai.tracker.domain.security.BiometricAuthManager
 import com.pennywiseai.tracker.domain.security.BiometricCapability
 import com.pennywiseai.tracker.ui.UiText
+import com.pennywiseai.tracker.domain.security.DecoyVaultManager
+import com.pennywiseai.tracker.domain.security.UnlockOutcome
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,11 +18,59 @@ import javax.inject.Inject
 @HiltViewModel
 class AppLockViewModel @Inject constructor(
     private val appLockRepository: AppLockRepository,
-    private val biometricAuthManager: BiometricAuthManager
+    private val biometricAuthManager: BiometricAuthManager,
+    val decoyVaultManager: DecoyVaultManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppLockUiState())
     val uiState: StateFlow<AppLockUiState> = _uiState.asStateFlow()
+
+    val isDecoyEnabled: StateFlow<Boolean> = decoyVaultManager.isDecoyEnabled
+    val isDecoySessionActive: StateFlow<Boolean> = decoyVaultManager.isDecoySessionActive
+
+    private val _pinError = MutableStateFlow<String?>(null)
+    val pinError: StateFlow<String?> = _pinError.asStateFlow()
+
+    private var armedDuressBiometric = false
+
+    fun armDuressBiometric() {
+        armedDuressBiometric = true
+    }
+
+    fun clearPinError() {
+        _pinError.value = null
+    }
+
+    fun unlockWithPin(pin: String): Boolean {
+        val outcome = decoyVaultManager.verifyPin(pin)
+        return when (outcome) {
+            UnlockOutcome.REAL_VAULT -> {
+                _pinError.value = null
+                decoyVaultManager.activateRealVaultSession()
+                onAuthenticationSuccess()
+                true
+            }
+            UnlockOutcome.DECOY_VAULT -> {
+                _pinError.value = null
+                viewModelScope.launch {
+                    decoyVaultManager.activateDuressDecoySession()
+                    appLockRepository.updateAuthTimestamp()
+                    _uiState.update {
+                        it.copy(
+                            isLocked = false,
+                            authenticationError = null,
+                            authenticationSucceeded = true
+                        )
+                    }
+                }
+                true
+            }
+            UnlockOutcome.INVALID -> {
+                _pinError.value = "Invalid PIN"
+                false
+            }
+        }
+    }
 
     init {
         observeAppLockState()
@@ -63,6 +113,12 @@ class AppLockViewModel @Inject constructor(
      */
     fun onAuthenticationSuccess() {
         viewModelScope.launch {
+            if (armedDuressBiometric) {
+                decoyVaultManager.activateDuressDecoySession()
+                armedDuressBiometric = false
+            } else {
+                decoyVaultManager.activateRealVaultSession()
+            }
             appLockRepository.updateAuthTimestamp()
             _uiState.update {
                 it.copy(

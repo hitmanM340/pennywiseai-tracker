@@ -180,7 +180,10 @@ fun PennyWiseApp(
         accentColor = themeUiState.accentColor,
         isAmoledMode = themeUiState.isAmoledMode,
         appFont = themeUiState.appFont,
-        blurEffects = themeUiState.blurEffectsEnabled
+        blurEffects = themeUiState.blurEffectsEnabled,
+        surfaceMaterialStyle = themeUiState.surfaceMaterialStyle,
+        capybaraPalette = themeUiState.capybaraPalette,
+        glassIntensity = themeUiState.glassIntensity
     ) {
         PennyWiseNavHost(
             navController = navController,

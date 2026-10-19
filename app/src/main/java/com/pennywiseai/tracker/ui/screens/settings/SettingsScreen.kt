@@ -163,6 +163,10 @@ fun SettingsScreen(
     var showSmsScanDatePicker by remember { mutableStateOf(false) }
     var showExportOptionsDialog by remember { mutableStateOf(false) }
     var showTimeoutDialog by remember { mutableStateOf(false) }
+    val isDecoyEnabled by appLockViewModel.decoyVaultManager.isDecoyEnabled.collectAsStateWithLifecycle()
+    val isDecoySessionActive by appLockViewModel.decoyVaultManager.isDecoySessionActive.collectAsStateWithLifecycle()
+    var showRealPinDialog by remember { mutableStateOf(false) }
+    var showDecoyPinDialog by remember { mutableStateOf(false) }
     var showDisplayCurrencyDialog by remember { mutableStateOf(false) }
     var showNumberFormatDialog by remember { mutableStateOf(false) }
     var showBudgetCycleDialog by remember { mutableStateOf(false) }
@@ -544,6 +548,53 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { showTimeoutDialog = true },
+                        position = ListItemPosition.Middle
+                    )
+                }
+                SettingsSwitchRow(
+                    icon = Icons.Default.Shield,
+                    iconBgColor = purple_light,
+                    iconTint = purple_dark,
+                    title = "Chameleon Decoy Vault",
+                    subtitle = "Stealth Duress Mode: Decoy PIN opens an isolated ledger",
+                    checked = isDecoyEnabled,
+                    onCheckedChange = { appLockViewModel.decoyVaultManager.setDecoyEnabled(it) },
+                    position = if (isDecoyEnabled) ListItemPosition.Middle else ListItemPosition.Bottom
+                )
+                if (isDecoyEnabled) {
+                    SettingsNavItem(
+                        icon = Icons.Default.Key,
+                        iconBgColor = orange_light,
+                        iconTint = orange_dark,
+                        title = "Primary Vault PIN",
+                        subtitle = if (appLockViewModel.decoyVaultManager.isRealPinConfigured()) "Configured (Protected)" else "Tap to configure primary PIN",
+                        onClick = { showRealPinDialog = true },
+                        position = ListItemPosition.Middle
+                    )
+                    SettingsNavItem(
+                        icon = Icons.Default.VpnKey,
+                        iconBgColor = red_light,
+                        iconTint = red_dark,
+                        title = "Duress / Decoy PIN",
+                        subtitle = if (appLockViewModel.decoyVaultManager.isDecoyPinConfigured()) "Configured (Stealth active)" else "Tap to configure duress PIN",
+                        onClick = { showDecoyPinDialog = true },
+                        position = ListItemPosition.Middle
+                    )
+                    SettingsNavItem(
+                        icon = Icons.Default.VisibilityOff,
+                        iconBgColor = blue_light,
+                        iconTint = blue_dark,
+                        title = "Test Decoy Vault Now",
+                        subtitle = if (isDecoySessionActive) "Decoy session active! Tap to switch to Real vault" else "Activate duress decoy session",
+                        onClick = {
+                            if (isDecoySessionActive) {
+                                appLockViewModel.decoyVaultManager.activateRealVaultSession()
+                                Toast.makeText(context, "Real Vault restored", Toast.LENGTH_SHORT).show()
+                            } else {
+                                appLockViewModel.decoyVaultManager.activateDuressDecoySession()
+                                Toast.makeText(context, "Chameleon Decoy Vault active! Check Transactions tab", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         position = ListItemPosition.Bottom
                     )
                 }
@@ -792,7 +843,7 @@ fun SettingsScreen(
                     icon = Icons.Default.AutoAwesome,
                     iconBgColor = purple_light,
                     iconTint = purple_dark,
-                    title = "Show Capybara AI Tab",
+                    title = "Show PennyWise AI Tab",
                     subtitle = "Hide the AI assistant tab on devices that don't use local LLM chat",
                     checked = showAiTab,
                     onCheckedChange = { settingsViewModel.setShowAiTab(it) },
@@ -1398,6 +1449,104 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(onClick = { showTimeoutDialog = false }) {
                     Text(stringResource(R.string.settings_action_done))
+                }
+            }
+        )
+    }
+
+    // Chameleon Real PIN Setup Dialog
+    if (showRealPinDialog) {
+        var pin by remember { mutableStateOf("") }
+        var pinError by remember { mutableStateOf<String?>(null) }
+        AlertDialog(
+            onDismissRequest = { showRealPinDialog = false },
+            title = { Text("Set Primary Vault PIN") },
+            text = {
+                Column {
+                    Text("Enter a 4-8 digit primary PIN to unlock your real vault.", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    OutlinedTextField(
+                        value = pin,
+                        onValueChange = {
+                            if (it.length <= 8 && it.all { ch -> ch.isDigit() }) {
+                                pin = it
+                                pinError = null
+                            }
+                        },
+                        label = { Text("Primary PIN") },
+                        singleLine = true,
+                        isError = pinError != null,
+                        supportingText = pinError?.let { { Text(it) } }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (pin.length in 4..8) {
+                            appLockViewModel.decoyVaultManager.setRealPin(pin)
+                            showRealPinDialog = false
+                            Toast.makeText(context, "Primary PIN saved", Toast.LENGTH_SHORT).show()
+                        } else {
+                            pinError = "PIN must be 4 to 8 digits"
+                        }
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRealPinDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Chameleon Duress / Decoy PIN Setup Dialog
+    if (showDecoyPinDialog) {
+        var pin by remember { mutableStateOf("") }
+        var pinError by remember { mutableStateOf<String?>(null) }
+        AlertDialog(
+            onDismissRequest = { showDecoyPinDialog = false },
+            title = { Text("Set Duress / Decoy PIN") },
+            text = {
+                Column {
+                    Text("Enter a secondary 4-8 digit PIN. Entering this PIN under duress will display a realistic decoy ledger with no real accounts.", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+                    OutlinedTextField(
+                        value = pin,
+                        onValueChange = {
+                            if (it.length <= 8 && it.all { ch -> ch.isDigit() }) {
+                                pin = it
+                                pinError = null
+                            }
+                        },
+                        label = { Text("Decoy PIN") },
+                        singleLine = true,
+                        isError = pinError != null,
+                        supportingText = pinError?.let { { Text(it) } }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (pin.length in 4..8) {
+                            appLockViewModel.decoyVaultManager.setDecoyPin(pin)
+                            showDecoyPinDialog = false
+                            Toast.makeText(context, "Duress Decoy PIN saved", Toast.LENGTH_SHORT).show()
+                        } else {
+                            pinError = "PIN must be 4 to 8 digits"
+                        }
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDecoyPinDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )

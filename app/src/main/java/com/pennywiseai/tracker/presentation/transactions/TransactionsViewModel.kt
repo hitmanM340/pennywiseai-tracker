@@ -1,4 +1,4 @@
-﻿package com.pennywiseai.tracker.presentation.transactions
+package com.pennywiseai.tracker.presentation.transactions
 
 import com.pennywiseai.tracker.ui.UiText
 import com.pennywiseai.tracker.R
@@ -68,6 +68,7 @@ class TransactionsViewModel @Inject constructor(
     private val transactionGroupRepository: TransactionGroupRepository,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val restoreTransactionUseCase: RestoreTransactionUseCase,
+    private val decoyVaultManager: com.pennywiseai.tracker.domain.security.DecoyVaultManager,
     private val savedStateHandle: androidx.lifecycle.SavedStateHandle,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
@@ -1356,7 +1357,13 @@ class TransactionsViewModel @Inject constructor(
         // A parent category includes its sub-categories (#374).
         val effectiveCategories = (categories?.takeIf { it.isNotEmpty() } ?: category?.let { listOf(it) })
             ?.let { this.categories.value.values.toList().expandWithChildren(it) }
-        val baseFlow = transactionRepository.getAllTransactions()
+        val baseFlow = decoyVaultManager.isDecoySessionActive.flatMapLatest { isDecoy ->
+            if (isDecoy) {
+                flowOf(decoyVaultManager.getDecoyTransactions())
+            } else {
+                transactionRepository.getAllTransactions()
+            }
+        }
 
         // Apply the category filter. A transaction is included if its main category OR
         // any of its split categories matches.

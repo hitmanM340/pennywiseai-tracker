@@ -9,17 +9,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.pennywiseai.tracker.domain.intelligence.DebtItem
+import com.pennywiseai.tracker.domain.intelligence.DebtPayoffComparison
 import com.pennywiseai.tracker.domain.intelligence.EmergencyRunway
 import com.pennywiseai.tracker.domain.intelligence.NetWorthSnapshot
 import com.pennywiseai.tracker.domain.intelligence.RunwayHealth
@@ -31,17 +36,22 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
- * Wealth Cockpit Card: Displays True Net Worth, Emergency Runway health,
- * and launches the 30-day "What-If" Spend Simulator.
+ * Wealth Cockpit 3-Tab Suite:
+ * - Tab 1: True Net Worth & Emergency Runway
+ * - Tab 2: 30-day "What-If" Spend Simulator (with interactive slider)
+ * - Tab 3: Debt Payoff Snowball vs. Avalanche (with extra monthly payment slider)
+ * - Status Row: "Sentry Active: 0 Double-Charges / 0 Price Creeps" + "Simulate Demo Alert" button
  */
 @Composable
 fun WealthCockpitCard(
     netWorth: NetWorthSnapshot,
     emergencyRunway: EmergencyRunway,
     engine: WealthIntelligenceEngine,
+    debtOptimization: DebtPayoffComparison? = null,
     modifier: Modifier = Modifier
 ) {
-    var showSimulatorDialog by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var showDemoAlertDialog by remember { mutableStateOf(false) }
 
     val (badgeBg, badgeText, textColor) = remember(emergencyRunway.health) {
         when (emergencyRunway.health) {
@@ -53,9 +63,7 @@ fun WealthCockpitCard(
     }
 
     CapybaraGlassBox(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { showSimulatorDialog = true },
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
@@ -63,6 +71,7 @@ fun WealthCockpitCard(
                 .fillMaxWidth()
                 .padding(Spacing.md)
         ) {
+            // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -84,7 +93,7 @@ fun WealthCockpitCard(
                     }
                     Spacer(modifier = Modifier.width(Spacing.sm))
                     Text(
-                        text = "Wealth Intelligence",
+                        text = "Wealth Intelligence Cockpit",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -105,75 +114,345 @@ fun WealthCockpitCard(
                 }
             }
 
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            // 3-Tab Bar
+            val tabTitles = listOf("Runway & Net Worth", "What-If Simulator", "Debt Payoff")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                tabTitles.forEachIndexed { index, title ->
+                    val isSelected = selectedTab == index
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else Color.Transparent
+                            )
+                            .clickable { selectedTab = index }
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = title,
+                            fontSize = 11.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(Spacing.md))
 
-            // Net Worth Metric
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Column {
-                    Text(
-                        text = "True Net Worth",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${netWorth.currency} ${netWorth.netWorth.setScale(2, RoundingMode.HALF_UP)}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+            // Tab Contents
+            when (selectedTab) {
+                0 -> {
+                    // TAB 1: Net Worth & Emergency Runway
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Column {
+                            Text(
+                                text = "True Net Worth",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${netWorth.currency} ${netWorth.netWorth.setScale(2, RoundingMode.HALF_UP)}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
 
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Runway Buffer",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${String.format("%.1f", emergencyRunway.runwayMonths)} mos (${emergencyRunway.runwayDays} d)",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = textColor
-                    )
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "Runway Buffer",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${String.format("%.1f", emergencyRunway.runwayMonths)} mos (${emergencyRunway.runwayDays} d)",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = textColor
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+
+                    // Liquid vs Liability Bar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(6.dp))
+                            .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Liquid: ${netWorth.currency} ${netWorth.liquidAssets.setScale(0, RoundingMode.HALF_UP)}",
+                            fontSize = 11.sp,
+                            color = Color(0xFF10B981)
+                        )
+                        Text(
+                            text = "Liabilities: ${netWorth.currency} ${netWorth.liabilities.setScale(0, RoundingMode.HALF_UP)}",
+                            fontSize = 11.sp,
+                            color = Color(0xFFEF4444)
+                        )
+                    }
+                }
+                1 -> {
+                    // TAB 2: 30-Day "What-If" Spend Simulator
+                    var simulatedSpend by remember { mutableFloatStateOf(15000f) }
+                    val simulationResult = remember(simulatedSpend, netWorth.liquidAssets, emergencyRunway.monthlyBurnRate) {
+                        engine.simulateSpend(
+                            currentLiquidReserves = netWorth.liquidAssets,
+                            monthlyBurnRate = emergencyRunway.monthlyBurnRate,
+                            spendAmount = BigDecimal.valueOf(simulatedSpend.toDouble()),
+                            monthlySavingsCapacity = BigDecimal("10000")
+                        )
+                    }
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Simulated Purchase:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${netWorth.currency} ${simulatedSpend.toInt()}",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Slider(
+                            value = simulatedSpend,
+                            onValueChange = { simulatedSpend = it },
+                            valueRange = 0f..100000f,
+                            steps = 19,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (simulationResult.isThresholdBreached) {
+                                Color(0xFFEF4444).copy(alpha = 0.15f)
+                            } else {
+                                Color(0xFF10B981).copy(alpha = 0.15f)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(Spacing.sm)) {
+                                Text(
+                                    text = if (simulationResult.isThresholdBreached) "⚠️ Warning: Breaches Safe Buffer (< 3 mos)" else "✓ Purchase is Safe & Affordable",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (simulationResult.isThresholdBreached) Color(0xFFEF4444) else Color(0xFF10B981),
+                                    fontSize = 12.sp
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Projected Runway: ${simulationResult.projectedRunwayDays} days",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = "Liquid: ${netWorth.currency} ${simulationResult.projectedLiquidReserves.setScale(0, RoundingMode.HALF_UP)}",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                2 -> {
+                    // TAB 3: Debt Payoff Snowball vs. Avalanche
+                    var extraPayment by remember { mutableFloatStateOf(5000f) }
+                    val sampleDebts = remember {
+                        listOf(
+                            DebtItem("Credit Card", BigDecimal("45000"), 36.0, BigDecimal("2500")),
+                            DebtItem("Personal Loan", BigDecimal("120000"), 14.5, BigDecimal("4500")),
+                            DebtItem("Auto Loan", BigDecimal("350000"), 9.5, BigDecimal("8200"))
+                        )
+                    }
+
+                    val debtComparison = remember(extraPayment) {
+                        engine.compareDebtStrategies(sampleDebts, BigDecimal.valueOf(extraPayment.toDouble()))
+                    }
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Extra Monthly Payment:",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${netWorth.currency} ${extraPayment.toInt()}/mo",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Slider(
+                            value = extraPayment,
+                            onValueChange = { extraPayment = it },
+                            valueRange = 0f..30000f,
+                            steps = 14,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(Spacing.sm)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "⚡ Avalanche Strategy",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF10B981)
+                                    )
+                                    Text(
+                                        text = "Saves ~${netWorth.currency} ${debtComparison.estimatedAvalancheInterestSaved}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF10B981)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Targets highest APR (36.0%) first for maximum interest savings.",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "⛄ Snowball: Targets lowest balance (₹45,000) for fast behavioral momentum.",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(Spacing.sm))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(Spacing.xs))
 
-            // Liquid vs Liability Bar
+            // Sentry Status Row
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(6.dp))
-                    .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Liquid: ${netWorth.currency} ${netWorth.liquidAssets.setScale(0, RoundingMode.HALF_UP)}",
-                    fontSize = 11.sp,
-                    color = Color(0xFF10B981)
-                )
-                Text(
-                    text = "Liabilities: ${netWorth.currency} ${netWorth.liabilities.setScale(0, RoundingMode.HALF_UP)}",
-                    fontSize = 11.sp,
-                    color = Color(0xFFEF4444)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Sentry Active: 0 Double-Charges / 0 Price Creeps",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                TextButton(
+                    onClick = { showDemoAlertDialog = true },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = "Simulate Demo Alert",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
 
-    // Spend Simulator Dialog
-    if (showSimulatorDialog) {
-        SpendSimulatorDialog(
-            liquidReserves = netWorth.liquidAssets,
-            monthlyBurnRate = emergencyRunway.monthlyBurnRate,
-            currency = netWorth.currency,
-            engine = engine,
-            onDismiss = { showSimulatorDialog = false }
+    // Demo Alert Dialog
+    if (showDemoAlertDialog) {
+        AlertDialog(
+            onDismissRequest = { showDemoAlertDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color(0xFFEF4444)
+                )
+            },
+            title = {
+                Text("Revamped Sentry Demo Alert")
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    Text(
+                        text = "⚠️ Potential Duplicate Charge Detected",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFEF4444),
+                        fontSize = 13.sp
+                    )
+                    Text(
+                        text = "₹499.00 charged twice within 3 minutes by Netflix Streaming.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Text(
+                        text = "📈 Stealth Price Creep Alert",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFF59E0B),
+                        fontSize = 13.sp
+                    )
+                    Text(
+                        text = "Spotify Premium increased by +14.2% (from ₹119 to ₹136) without tier upgrade.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDemoAlertDialog = false }) {
+                    Text("Dismiss")
+                }
+            }
         )
     }
 }

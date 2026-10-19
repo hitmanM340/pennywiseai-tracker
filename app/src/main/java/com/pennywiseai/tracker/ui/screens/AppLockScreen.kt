@@ -1,16 +1,25 @@
 package com.pennywiseai.tracker.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
@@ -31,7 +40,11 @@ fun AppLockScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDecoyEnabled by viewModel.isDecoyEnabled.collectAsStateWithLifecycle()
+    val pinError by viewModel.pinError.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    var pinInput by remember { mutableStateOf("") }
 
     // Prevent back navigation when app is locked
     BackHandler(enabled = true) {
@@ -70,11 +83,24 @@ fun AppLockScreen(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Lock icon
+                // Lock icon with duress stealth gesture (double-tap or long-press)
                 Icon(
                     imageVector = Icons.Filled.Lock,
                     contentDescription = stringResource(R.string.applock_icon_cd),
-                    modifier = Modifier.size(120.dp),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onDoubleTap = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.armDuressBiometric()
+                                },
+                                onLongPress = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.armDuressBiometric()
+                                }
+                            )
+                        },
                     tint = MaterialTheme.colorScheme.primary
                 )
 
@@ -164,6 +190,48 @@ fun AppLockScreen(
                                 )
                             }
                         }
+                    }
+                }
+
+                // Decoy / PIN Vault fallback entry
+                if (isDecoyEnabled) {
+                    Spacer(modifier = Modifier.height(Spacing.md))
+                    OutlinedTextField(
+                        value = pinInput,
+                        onValueChange = {
+                            if (it.length <= 8 && it.all { ch -> ch.isDigit() }) {
+                                pinInput = it
+                                viewModel.clearPinError()
+                            }
+                        },
+                        label = { Text("Enter PIN") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (pinInput.isNotEmpty()) {
+                                    viewModel.unlockWithPin(pinInput)
+                                }
+                            }
+                        ),
+                        isError = pinError != null,
+                        supportingText = pinError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    OutlinedButton(
+                        onClick = {
+                            if (pinInput.isNotEmpty()) {
+                                viewModel.unlockWithPin(pinInput)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Unlock with PIN")
                     }
                 }
 

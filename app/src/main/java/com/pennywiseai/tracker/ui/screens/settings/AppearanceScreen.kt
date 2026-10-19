@@ -67,6 +67,8 @@ import com.pennywiseai.tracker.data.preferences.AppFont
 import com.pennywiseai.tracker.data.preferences.CoverStyle
 import com.pennywiseai.tracker.data.preferences.NavBarStyle
 import com.pennywiseai.tracker.data.preferences.ThemeStyle
+import com.pennywiseai.tracker.ui.theme.CapybaraPalette
+import com.pennywiseai.tracker.ui.theme.SurfaceMaterialStyle
 import com.pennywiseai.tracker.ui.components.CustomTitleTopAppBar
 import com.pennywiseai.tracker.ui.components.PreferenceSwitch
 import com.pennywiseai.tracker.ui.components.cards.GroupedList
@@ -312,6 +314,36 @@ fun AppearanceScreen(
                 FontSelector(
                     currentFont = themeUiState.appFont,
                     onFontSelected = { themeViewModel.updateAppFont(it) }
+                )
+
+                // Surface Material Engine Section
+                SectionHeaderV2(
+                    title = "Surface Material Engine",
+                    modifier = Modifier.padding(start = Dimensions.Padding.content)
+                )
+                SurfaceMaterialStyleSelector(
+                    currentStyle = themeUiState.surfaceMaterialStyle,
+                    onStyleSelected = { themeViewModel.updateSurfaceMaterialStyle(it) }
+                )
+
+                // Revamped Color Palette Section
+                SectionHeaderV2(
+                    title = "Revamped Color Palette",
+                    modifier = Modifier.padding(start = Dimensions.Padding.content)
+                )
+                RevampedPaletteSelector(
+                    currentPalette = themeUiState.capybaraPalette,
+                    onPaletteSelected = { themeViewModel.updateCapybaraPalette(it) }
+                )
+
+                // Glass Specular & Blur Intensity Section
+                SectionHeaderV2(
+                    title = "Glass Specular & Blur Intensity",
+                    modifier = Modifier.padding(start = Dimensions.Padding.content)
+                )
+                GlassIntensitySlider(
+                    currentIntensity = themeUiState.glassIntensity,
+                    onIntensityChanged = { themeViewModel.updateGlassIntensity(it) }
                 )
 
                 Spacer(modifier = Modifier.height(Spacing.xl))
@@ -948,6 +980,183 @@ private fun getTertiaryColorForDisplay(accent: AccentColor, isDark: Boolean): Co
             AccentColor.HIGHLIGHT -> Dawn_Highlight_tertiary
             AccentColor.SURFACE -> Dawn_Surface_tertiary
             AccentColor.OVERLAY -> Dawn_Overlay_tertiary
+        }
+    }
+}
+
+// --- Surface Material Style Selector ---
+
+@Composable
+private fun SurfaceMaterialStyleSelector(
+    currentStyle: SurfaceMaterialStyle,
+    onStyleSelected: (SurfaceMaterialStyle) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+    ) {
+        val styles = listOf(
+            Triple(SurfaceMaterialStyle.LIQUID_GLASS, "Liquid Glass", "Translucent glass with specular rim"),
+            Triple(SurfaceMaterialStyle.PURE_AMOLED, "Pure AMOLED", "Pitch black #000000 with 0% overhead"),
+            Triple(SurfaceMaterialStyle.FROSTED_ACRYLIC, "Frosted Acrylic", "Diffused matte finish with soft blur"),
+            Triple(SurfaceMaterialStyle.MATTE_MINIMAL, "Matte Minimal", "Solid flat surfaces with clean borders")
+        )
+
+        styles.chunked(2).forEach { rowStyles ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+            ) {
+                rowStyles.forEach { (style, title, subtitle) ->
+                    val isSelected = currentStyle == style
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { onStyleSelected(style) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+                        border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary) else null
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(Spacing.md)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(Spacing.xs))
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Revamped Palette Swatch Selector ---
+
+@Composable
+private fun RevampedPaletteSelector(
+    currentPalette: CapybaraPalette,
+    onPaletteSelected: (CapybaraPalette) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = Spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+    ) {
+        items(CapybaraPalette.values()) { palette ->
+            val isSelected = currentPalette == palette
+            Surface(
+                modifier = Modifier
+                    .width(130.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { onPaletteSelected(palette) },
+                shape = RoundedCornerShape(16.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerLow,
+                border = if (isSelected) androidx.compose.foundation.BorderStroke(2.dp, palette.primaryColor) else null
+            ) {
+                Column(
+                    modifier = Modifier.padding(Spacing.sm),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(palette.primaryColor, palette.secondaryColor)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Text(
+                        text = palette.displayName,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+// --- Glass Specular & Blur Intensity Slider ---
+
+@Composable
+private fun GlassIntensitySlider(
+    currentIntensity: Float,
+    onIntensityChanged: (Float) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.md),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(modifier = Modifier.padding(Spacing.md)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Intensity Level",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "${(currentIntensity * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(modifier = Modifier.height(Spacing.xs))
+            androidx.compose.material3.Slider(
+                value = currentIntensity,
+                onValueChange = onIntensityChanged,
+                valueRange = 0.10f..1.0f,
+                steps = 18
+            )
         }
     }
 }
